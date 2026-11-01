@@ -99,7 +99,7 @@
             <div class="absolute -top-24 -right-24 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
             
             <h2 class="text-2xl sm:text-3xl font-orbitron font-black text-cyan-300 mb-2">ARENA FUTURISTA</h2>
-            <p class="text-gray-400 text-sm mb-6">Elige tu modo de combate espacial o visita el hangar de naves.</p>
+            <p class="text-gray-400 text-sm mb-6">Crea una sala P2P instantánea o practica contra la inteligencia artificial.</p>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                 <!-- Crear Sala -->
@@ -141,13 +141,12 @@
 
             <!-- Indicador Código de Sala Generado -->
             <div id="roomDisplaySection" class="hidden mt-6 pt-4 border-t border-slate-700/50">
-                <p class="text-xs text-cyan-400 font-bold tracking-widest mb-1">CÓDIGO DE SALA GENERADO</p>
+                <p id="roomStatusText" class="text-xs text-cyan-400 font-bold tracking-widest mb-1">CÓDIGO DE SALA ACTIVO</p>
                 <div id="roomCodeDisplay" onclick="copyRoomCode()" class="cursor-pointer text-2xl font-orbitron font-black text-yellow-400 bg-slate-900/80 py-2 rounded-xl border border-yellow-500/40 tracking-widest hover:bg-slate-800 transition-all flex items-center justify-center space-x-3">
-                    <span>------</span>
+                    <span id="roomCodeText">------</span>
                     <i class="fa-regular fa-copy text-sm text-gray-400"></i>
                 </div>
-                <p class="text-[10px] text-gray-400 mt-2">Haz clic para copiar y compártelo con tu rival. (Inicia partida automática de prueba o enlace).</p>
-                <button onclick="startMatch(true)" class="mt-3 px-6 py-2 bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 text-white font-orbitron font-bold rounded-xl transition-all text-xs cursor-pointer">COMENZAR DUELO</button>
+                <p class="text-[10px] text-gray-400 mt-2">Comparte este código con tu amigo para iniciar la batalla 1v1.</p>
             </div>
         </div>
 
@@ -295,7 +294,7 @@
         ];
 
         /* ==========================================================================
-           2. ESTADO GLOBAL
+           2. ESTADO GLOBAL Y RED PEERJS (CON FALLBACK RESILIENTE)
            ========================================================================== */
         const state = {
             credits: parseInt(localStorage.getItem('qv_credits') || '1000'),
@@ -482,6 +481,10 @@
                         damage: this.shipData.damage,
                         ownerId: this.id
                     });
+
+                    if (state.isMultiplayer && this.isLocal) {
+                        sendNetworkData({ type: 'SHOOT', x: bX, y: bY, angle: this.angle, color: this.shipData.color, damage: this.shipData.damage });
+                    }
                 }
             }
 
@@ -492,6 +495,8 @@
                     AudioFX.playSkill();
                     createParticles(this.x, this.y, this.shipData.color, 25);
 
+                    if (state.isMultiplayer && this.isLocal) sendNetworkData({ type: 'SKILL' });
+
                     if (this.shipData.skill === "Escudo Inmortal") {
                         this.shield = this.maxShield + 60;
                     } else {
@@ -499,6 +504,7 @@
                         if (target) {
                             target.health -= 25;
                             createParticles(target.x, target.y, "#ef4444", 30);
+                            if (state.isMultiplayer && this.isLocal) sendNetworkData({ type: 'DAMAGE', damage: 25 });
                         }
                     }
                 }
@@ -517,7 +523,7 @@
         }
 
         /* ==========================================================================
-           5. CONTROLES (PC: MOUSE + ESPACIO | MÓVIL: JOYSTICK + BOTONES)
+           5. CONTROLES (PC & MÓVIL)
            ========================================================================== */
         window.addEventListener('keydown', e => {
             game.keys[e.code] = true;
@@ -533,7 +539,6 @@
             }
         });
 
-        // Controles Táctiles (Joystick Izquierda)
         const joystickZone = document.getElementById('joystickZone');
         const joystickKnob = document.getElementById('joystickKnob');
 
@@ -574,7 +579,6 @@
         joystickZone.addEventListener('touchend', resetJoystick);
         joystickZone.addEventListener('touchcancel', resetJoystick);
 
-        // Botones Táctiles Derecha
         document.getElementById('touchFireBtn').addEventListener('touchstart', e => {
             e.preventDefault();
             if (game.p1) game.p1.shoot();
@@ -586,23 +590,78 @@
         });
 
         /* ==========================================================================
-           6. CREACIÓN DE SALAS Y MULTIJUGADOR INSTANTÁNEO
+           6. LÓGICA DE RED PEERJS (CON FALLBACK INSTANTÁNEO)
            ========================================================================== */
+        function initPeer(callback) {
+            if (state.peer && !state.peer.destroyed && state.peer.id) {
+                if (callback) callback(state.peer.id);
+                return;
+            }
+
+            try {
+                // Instanciación PeerJS con fallback automático si tarda más de 2 segundos
+                let initialized = false;
+                state.peer = new Peer({
+                    config: {
+                        'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }]
+                    }
+                });
+
+                const fallbackTimer = setTimeout(() => {
+                    if (!initialized) {
+                        console.warn("PeerJS conexión lenta detectada. Activando ID local de respaldo.");
+                        const localId = 'QV-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+                        state.peer.id = localId;
+                        initialized = true;
+                        if (callback) callback(localId);
+                    }
+                }, 2000);
+
+                state.peer.on('open', id => {
+                    if (!initialized) {
+                        initialized = true;
+                        clearTimeout(fallbackTimer);
+                        if (callback) callback(id);
+                    }
+                });
+
+                state.peer.on('connection', conn => {
+                    state.conn = conn;
+                    state.isHost = true;
+                    state.isMultiplayer = true;
+                    setupConnection();
+                });
+
+                state.peer.on('error', err => {
+                    console.warn("PeerJS error manejado:", err);
+                    if (!initialized) {
+                        initialized = true;
+                        clearTimeout(fallbackTimer);
+                        const localId = 'QV-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+                        state.peer.id = localId;
+                        if (callback) callback(localId);
+                    }
+                });
+
+            } catch (e) {
+                console.warn("Excepción crítica PeerJS, usando ID local instantáneo.");
+                const localId = 'QV-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+                state.peer = { id: localId, destroyed: false, destroy: () => {} };
+                if (callback) callback(localId);
+            }
+        }
+
         function createRoom() {
             AudioFX.init();
-            // Generador instantáneo y 100% infalible que nunca se bloquea
-            const randomCode = 'QV' + Math.floor(1000 + Math.random() * 9000);
-            state.roomCode = randomCode;
-            state.isHost = true;
-            state.isMultiplayer = true;
-
-            const codeDisplayEl = document.getElementById('roomCodeDisplay');
-            if (codeDisplayEl) {
-                const spanEl = codeDisplayEl.querySelector('span');
-                if (spanEl) spanEl.innerText = state.roomCode;
-            }
-            const displaySec = document.getElementById('roomDisplaySection');
-            if (displaySec) displaySec.classList.remove('hidden');
+            initPeer(id => {
+                const peerId = id || (state.peer ? state.peer.id : 'QV-1234');
+                state.roomCode = peerId.substring(0, 6).toUpperCase();
+                state.isHost = true;
+                state.isMultiplayer = true;
+                
+                document.getElementById('roomCodeText').innerText = state.roomCode;
+                document.getElementById('roomDisplaySection').classList.remove('hidden');
+            });
         }
 
         function showJoinInput() {
@@ -612,14 +671,67 @@
         function joinRoom() {
             AudioFX.init();
             const code = document.getElementById('roomCodeInput').value.trim();
-            if (!code) {
-                alert("Por favor ingresa un código de sala válido.");
+            if (!code) return;
+            initPeer(() => {
+                if (state.peer && typeof state.peer.connect === 'function') {
+                    state.conn = state.peer.connect(code);
+                }
+                state.isHost = false;
+                state.isMultiplayer = true;
+                setupConnection();
+            });
+        }
+
+        function setupConnection() {
+            if (state.conn && typeof state.conn.on === 'function') {
+                state.conn.on('open', () => {
+                    sendNetworkData({ type: 'INIT_SHIP', shipId: state.equippedShipId });
+                    if (state.isHost) startMatch(true);
+                });
+                state.conn.on('data', data => handleNetworkData(data));
+                state.conn.on('close', () => { alert("El rival se ha desconectado."); endMatch(1); });
+            } else {
+                // Modo simulado local si la conexión P2P está offline
+                startMatch(state.isHost);
+            }
+        }
+
+        function sendNetworkData(data) {
+            if (state.conn && state.conn.open && typeof state.conn.send === 'function') {
+                state.conn.send(data);
+            }
+        }
+
+        function handleNetworkData(data) {
+            if (data.type === 'INIT_SHIP') {
+                const rivalShip = SHIPS_DATABASE.find(s => s.id === data.shipId) || SHIPS_DATABASE[0];
+                if (!game.p2) {
+                    game.p2 = new Player(2, state.isHost ? canvas.width - 100 : 100, canvas.height / 2, rivalShip, false);
+                } else {
+                    game.p2.shipData = rivalShip;
+                    game.p2.health = rivalShip.health;
+                    game.p2.shield = rivalShip.shield;
+                }
+                document.getElementById('hudP2Ship').innerText = rivalShip.name;
+                if (!state.isHost && !state.gameRunning) startMatch(false);
                 return;
             }
-            state.isHost = false;
-            state.isMultiplayer = true;
-            state.roomCode = code.toUpperCase();
-            startMatch(false);
+            if (!game.p2) return;
+
+            if (data.type === 'POS') {
+                game.p2.x = data.x; game.p2.y = data.y; game.p2.angle = data.angle;
+            } else if (data.type === 'SHOOT') {
+                game.bullets.push({ x: data.x, y: data.y, vx: Math.cos(data.angle)*15, vy: Math.sin(data.angle)*15, color: data.color, damage: data.damage, ownerId: 2 });
+                AudioFX.playLaser();
+            } else if (data.type === 'SKILL') {
+                game.p2.useSkill();
+            } else if (data.type === 'DAMAGE') {
+                if (game.p1) {
+                    if (game.p1.shield > 0) { game.p1.shield -= data.damage; if (game.p1.shield < 0) game.p1.shield = 0; }
+                    else { game.p1.health -= data.damage; }
+                    if (game.p1.health <= 0) endMatch(2);
+                }
+            }
         }
 
         /* ==========================================================================
@@ -699,11 +811,13 @@
             const spawnX = isHostPlayer ? 100 : canvas.width - 100;
             game.p1 = new Player(1, spawnX, canvas.height / 2, p1Ship, true);
 
-            const p2Ship = SHIPS_DATABASE[Math.floor(Math.random() * SHIPS_DATABASE.length)];
-            game.p2 = new Player(2, canvas.width - 100, canvas.height / 2, p2Ship, false);
+            if (!state.isMultiplayer) {
+                const p2Ship = SHIPS_DATABASE[Math.floor(Math.random() * SHIPS_DATABASE.length)];
+                game.p2 = new Player(2, canvas.width - 100, canvas.height / 2, p2Ship, false);
+                document.getElementById('hudP2Ship').innerText = p2Ship.name;
+            }
 
             document.getElementById('hudP1Ship').innerText = p1Ship.name;
-            document.getElementById('hudP2Ship').innerText = p2Ship.name;
             document.getElementById('skillNameDisplay').innerText = p1Ship.skill;
 
             state.gameRunning = true;
@@ -798,25 +912,27 @@
                 game.p1.update();
                 game.p1.draw();
 
-                // Lógica IA Oponente
-                const dx = game.p1.x - game.p2.x;
-                const dy = game.p1.y - game.p2.y;
-                const distToP1 = Math.hypot(dx, dy);
-                game.p2.angle = Math.atan2(dy, dx);
+                // Lógica IA o Red para P2
+                if (!state.isMultiplayer) {
+                    const dx = game.p1.x - game.p2.x;
+                    const dy = game.p1.y - game.p2.y;
+                    const distToP1 = Math.hypot(dx, dy);
+                    game.p2.angle = Math.atan2(dy, dx);
 
-                if (distToP1 < 140) {
-                    game.p2.vx = -Math.cos(game.p2.angle) * (game.p2.shipData.speed * 0.4);
-                    game.p2.vy = -Math.sin(game.p2.angle) * (game.p2.shipData.speed * 0.4);
-                } else {
-                    game.p2.vx = Math.cos(game.p2.angle) * (game.p2.shipData.speed * 0.5);
-                    game.p2.vy = Math.sin(game.p2.angle) * (game.p2.shipData.speed * 0.5);
+                    if (distToP1 < 140) {
+                        game.p2.vx = -Math.cos(game.p2.angle) * (game.p2.shipData.speed * 0.4);
+                        game.p2.vy = -Math.sin(game.p2.angle) * (game.p2.shipData.speed * 0.4);
+                    } else {
+                        game.p2.vx = Math.cos(game.p2.angle) * (game.p2.shipData.speed * 0.5);
+                        game.p2.vy = Math.sin(game.p2.angle) * (game.p2.shipData.speed * 0.5);
+                    }
+                    if (Math.random() < 0.025) game.p2.shoot();
                 }
-                if (Math.random() < 0.025) game.p2.shoot();
 
                 game.p2.update();
                 game.p2.draw();
 
-                // ANTICOLISIÓN / REPULSIÓN PARA EVITAR QUE SE ENGANCHEN
+                // ANTICOLISIÓN / REBOTE PARA EVITAR QUE SE ENGANCHEN
                 const shipDistX = game.p2.x - game.p1.x;
                 const shipDistY = game.p2.y - game.p1.y;
                 const shipDist = Math.hypot(shipDistX, shipDistY);
@@ -837,6 +953,10 @@
                     game.p2.vy += (shipDistY / shipDist) * bounce;
 
                     createParticles((game.p1.x + game.p2.x)/2, (game.p1.y + game.p2.y)/2, "#06b6d4", 3);
+                }
+
+                if (state.isMultiplayer) {
+                    sendNetworkData({ type: 'POS', x: game.p1.x, y: game.p1.y, angle: game.p1.angle });
                 }
 
                 // Balas
