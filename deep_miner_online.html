@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-950 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deep Miner Online - PvP & World Map</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Outfit:wght@700;800;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #0284c7; border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #38bdf8; }
+        canvas { touch-action: none; }
+        
+        .idle-btn-blue {
+            background: linear-gradient(180deg, #38bdf8 0%, #0284c7 100%);
+            box-shadow: 0 4px 0 #0369a1, inset 0 2px 0 rgba(255,255,255,0.4);
+        }
+        .idle-btn-blue:active { transform: translateY(2px); box-shadow: 0 2px 0 #0369a1; }
+
+        .idle-btn-green {
+            background: linear-gradient(180deg, #34d399 0%, #059669 100%);
+            box-shadow: 0 4px 0 #047857, inset 0 2px 0 rgba(255,255,255,0.4);
+        }
+        .idle-btn-green:active { transform: translateY(2px); box-shadow: 0 2px 0 #047857; }
+
+        .idle-btn-amber {
+            background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%);
+            box-shadow: 0 4px 0 #b45309, inset 0 2px 0 rgba(255,255,255,0.4);
+        }
+        .idle-btn-amber:active { transform: translateY(2px); box-shadow: 0 2px 0 #b45309; }
+
+        .idle-btn-red {
+            background: linear-gradient(180deg, #f43f5e 0%, #be123c 100%);
+            box-shadow: 0 4px 0 #881337, inset 0 2px 0 rgba(255,255,255,0.4);
+        }
+        .idle-btn-red:active { transform: translateY(2px); box-shadow: 0 2px 0 #881337; }
+    </style>
+</head>
+<body class="h-full flex flex-col font-sans select-none overflow-hidden bg-slate-950 text-slate-100">
+
+    <!-- FIREBASE SDK INJECTION -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, onSnapshot, query, setIndexConfiguration } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'deep-miner-online-app';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "dummy-key",
+            authDomain: "dummy-app.firebaseapp.com",
+            projectId: "dummy-app",
+            storageBucket: "dummy-app.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        window.fbAuth = auth;
+        window.fbDb = db;
+        window.fbAppId = appId;
+
+        // Autenticación inicial
+        async function initAuth() {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (err) {
+                console.warn("Auth initialization fallback:", err);
+            }
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                window.currentUser = user;
+                document.getElementById('user-id-display').textContent = user.uid.substring(0, 8);
+                window.initOnlineUser(user);
+            }
+        });
+
+        initAuth();
+    </script>
+
+    <!-- TOP HEADER / HUD -->
+    <header class="bg-sky-950 border-b-4 border-sky-600 p-2 sm:p-3 flex justify-between items-center z-20 shadow-xl">
+        <div class="flex items-center gap-2 sm:gap-4">
+            <div class="bg-gradient-to-b from-amber-300 to-amber-500 text-slate-950 font-display font-black text-base sm:text-xl px-3 py-1 rounded-2xl shadow-lg border-2 border-amber-200 flex items-center gap-2">
+                <i class="fa-solid fa-gem text-amber-900 animate-bounce"></i>
+                <span>DEEP MINER <span class="text-sky-900">ONLINE</span></span>
+            </div>
+            
+            <button onclick="toggleMapView()" class="bg-slate-900 hover:bg-slate-800 border-2 border-amber-400 px-3 py-1 rounded-xl text-amber-300 font-extrabold text-xs flex items-center gap-1.5 shadow-md">
+                <i class="fa-solid fa-map-location-dot text-sm"></i>
+                <span id="current-mine-title">Mina: Carbón</span>
+            </button>
+        </div>
+
+        <!-- RECURSOS -->
+        <div class="flex items-center gap-2 sm:gap-4">
+            <div class="flex items-center gap-2 bg-slate-900/90 border-2 border-amber-400 px-3 py-1 rounded-2xl shadow-md">
+                <div class="w-6 h-6 rounded-full bg-amber-400 border border-amber-200 flex items-center justify-center font-black text-amber-900 text-xs shadow-inner">
+                    $
+                </div>
+                <div class="flex flex-col">
+                    <span id="resource-name-label" class="text-[9px] text-amber-300 uppercase tracking-wider font-extrabold">Carbón</span>
+                    <span id="gold-display" class="font-black text-white font-mono text-sm sm:text-base">0</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 bg-slate-900/90 border-2 border-emerald-400 px-3 py-1 rounded-2xl shadow-md">
+                <i class="fa-solid fa-gem text-emerald-400 text-sm"></i>
+                <div class="flex flex-col">
+                    <span class="text-[9px] text-emerald-300 uppercase tracking-wider font-extrabold">Gemas</span>
+                    <span id="gems-display" class="font-black text-emerald-200 font-mono text-sm sm:text-base">0</span>
+                </div>
+            </div>
+
+            <div class="hidden lg:flex items-center gap-2 bg-sky-900/90 px-3 py-1 rounded-2xl border-2 border-sky-400">
+                <i class="fa-solid fa-bolt text-yellow-300"></i>
+                <span id="gps-display" class="font-extrabold text-sky-200 font-mono text-xs">0 /s</span>
+            </div>
+        </div>
+
+        <!-- BOTONES CONTROLES -->
+        <div class="flex items-center gap-2">
+            <button onclick="openPvPMatching()" class="idle-btn-red text-white px-3 py-1.5 rounded-2xl text-xs font-black flex items-center gap-1.5 shadow-lg animate-pulse">
+                <i class="fa-solid fa-swords text-sm"></i>
+                <span>PvP 10-Min Rush</span>
+            </button>
+            <button onclick="openModal('modal-tutorial')" class="idle-btn-blue text-white px-3 py-1.5 rounded-2xl text-xs font-black flex items-center gap-1.5">
+                <i class="fa-solid fa-book-open"></i>
+                <span class="hidden sm:inline">Guía</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- CONTENEDOR PRINCIPAL -->
+    <div class="flex-1 flex flex-col md:flex-row overflow-hidden relative">
+
+        <!-- PANEL DE LA MINA INTERACTIVA (CANVAS) -->
+        <main id="main-mine-view" class="flex-1 flex flex-col bg-sky-300 relative overflow-hidden">
+            
+            <!-- BANNER MODOS DE JUEGO / PVP INDICADOR -->
+            <div id="pvp-banner" class="hidden bg-gradient-to-r from-red-600 via-rose-700 to-red-800 text-white p-2 border-b-4 border-red-950 flex justify-between items-center z-20 shadow-xl">
+                <div class="flex items-center gap-3">
+                    <span class="bg-slate-950 px-2.5 py-1 rounded-xl text-amber-300 font-black text-xs border border-amber-400">DUELO PVP REAL</span>
+                    <span id="pvp-timer-display" class="font-mono font-black text-sm text-yellow-300"><i class="fa-solid fa-stopwatch mr-1"></i> 10:00</span>
+                </div>
+                <div class="flex items-center gap-4 text-xs font-bold">
+                    <div>Tú: <span id="pvp-my-score" class="font-mono text-amber-300 font-black">0</span></div>
+                    <div class="text-slate-300">VS</div>
+                    <div>Rival: <span id="pvp-op-score" class="font-mono text-rose-300 font-black">0</span></div>
+                </div>
+                <button onclick="surrenderPvP()" class="bg-slate-900 hover:bg-slate-800 text-xs px-2.5 py-1 rounded-lg border border-red-400 font-bold">Rendirse</button>
+            </div>
+
+            <!-- CANVAS INTERACTIVO CON EL ESTILO DEL JUEGO ORIGINAL -->
+            <div class="flex-1 relative w-full h-full">
+                <canvas id="idle-mine-canvas" class="w-full h-full block cursor-pointer"></canvas>
+            </div>
+
+            <!-- BARRA DE ACCIÓN INFERIOR -->
+            <div class="bg-slate-900 border-t-4 border-slate-700 p-2.5 flex justify-between items-center z-10 gap-2">
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] text-slate-400 font-bold hidden sm:inline">UID Player: <span id="user-id-display" class="text-amber-400 font-mono">Conectando...</span></span>
+                    <button onclick="openPrestigeModal()" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black py-2 px-3 rounded-2xl text-xs transition flex items-center gap-1.5 border-2 border-purple-300 shadow-md">
+                        <i class="fa-solid fa-atom"></i>
+                        <span>Prestigio</span>
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button onclick="buyNextShaft()" id="btn-buy-shaft" class="idle-btn-amber text-slate-950 font-black px-4 py-2 rounded-2xl text-xs transition">
+                        + Nuevo Pozo (<span id="next-shaft-cost">500</span> <span id="btn-cost-unit">Carbón</span>)
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- PANEL DE MAPA INTERACTIVO (OCULTO POR DEFECTO) -->
+        <div id="map-view-panel" class="hidden absolute inset-0 bg-slate-950 z-30 flex flex-col p-4 overflow-y-auto custom-scrollbar">
+            <div class="flex justify-between items-center border-b-2 border-slate-800 pb-3 mb-4">
+                <div>
+                    <h2 class="font-display font-black text-2xl text-amber-300"><i class="fa-solid fa-map-location-dot mr-2"></i> Mapa Mundial de Minas</h2>
+                    <p class="text-xs text-slate-400">Desbloquea minas más profundas alcanzando requisitos de nivel y recursos.</p>
+                </div>
+                <button onclick="toggleMapView()" class="idle-btn-blue text-white px-4 py-2 rounded-2xl font-black text-xs">
+                    Volver a la Mina
+                </button>
+            </div>
+
+            <div id="mines-map-grid" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 max-w-6xl mx-auto w-full my-auto">
+                <!-- Tarjetas dinámicas generadas mediante JS -->
+            </div>
+        </div>
+
+        <!-- PANEL MULTIJUGADOR ONLINE DERECHO -->
+        <aside class="w-full md:w-80 lg:w-96 bg-slate-900 border-t-4 md:border-t-0 md:border-l-4 border-sky-800 flex flex-col h-64 md:h-auto z-10">
+            <div class="flex border-b-2 border-slate-800 bg-slate-950 p-1">
+                <button onclick="switchTab('tab-online')" id="tab-btn-online" class="tab-btn flex-1 py-2 text-center text-xs font-black text-amber-400 border-b-4 border-amber-400 transition">
+                    <i class="fa-solid fa-users text-sm block mb-0.5"></i> Jugadores
+                </button>
+                <button onclick="switchTab('tab-pvp')" id="tab-btn-pvp" class="tab-btn flex-1 py-2 text-center text-xs font-black text-slate-400 border-b-4 border-transparent transition">
+                    <i class="fa-solid fa-trophy text-sm block mb-0.5"></i> Ranking PvP
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-4">
+                <!-- TAB JUGADORES ONLINE REALES -->
+                <div id="tab-online" class="tab-content space-y-3">
+                    <div class="flex justify-between items-center text-xs font-bold text-slate-400">
+                        <span>Jugadores Reales Conectados</span>
+                        <span class="text-emerald-400 text-[10px] font-mono"><i class="fa-solid fa-circle text-[7px] mr-1"></i> Servidor Sync</span>
+                    </div>
+                    <div id="online-players-list" class="space-y-2">
+                        <div class="text-center py-6 text-xs text-slate-500 font-semibold">Cargando jugadores online desde Firestore...</div>
+                    </div>
+                </div>
+
+                <!-- TAB RANKING PVP REAL -->
+                <div id="tab-pvp" class="tab-content hidden space-y-3">
+                    <div class="text-xs font-bold text-slate-400 px-1">Clasificación Global de Duetos 10-Min</div>
+                    <div id="pvp-leaderboard-list" class="space-y-2">
+                        <div class="text-center py-6 text-xs text-slate-500 font-semibold">Cargando tabla global...</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- MODAL MATCHMAKING PVP 10-MIN -->
+    <div id="modal-pvp" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-slate-900 border-4 border-red-600 rounded-3xl max-w-md w-full p-6 text-center space-y-4 shadow-2xl">
+            <div class="w-16 h-16 bg-red-600/20 border-2 border-red-400 rounded-2xl flex items-center justify-center mx-auto text-red-400 text-3xl">
+                <i class="fa-solid fa-stopwatch animate-pulse"></i>
+            </div>
+            <h3 class="font-display font-black text-2xl text-white">Desafío PvP 10-Minutos</h3>
+            <p class="text-xs text-slate-300 leading-relaxed">
+                ¡Empiezas una **mina de carbón completamente nueva desde cero** contra un jugador real online! Gana el que más carbón consiga al finalizar los 10 minutos.
+            </p>
+            
+            <div id="pvp-searching-status" class="bg-slate-950 p-4 rounded-2xl border-2 border-slate-800 text-xs font-mono">
+                <span class="text-amber-400 font-bold block mb-1">Buscando oponente real...</span>
+                <span class="text-slate-500 text-[10px]">Conectando salas en tiempo real de Firestore</span>
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="closeModal('modal-pvp')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 rounded-2xl text-xs transition border border-slate-600">
+                    Cancelar
+                </button>
+                <button onclick="startPvPMatchmaking()" class="flex-1 idle-btn-red text-white font-black py-2.5 rounded-2xl text-xs transition shadow-lg">
+                    ¡Buscar Rivales!
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL TUTORIAL COMPLETO -->
+    <div id="modal-tutorial" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-slate-900 border-4 border-sky-600 rounded-3xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            <div class="bg-sky-950 p-4 border-b-2 border-sky-800 flex justify-between items-center">
+                <div class="flex items-center gap-2 text-amber-300 font-display font-black text-lg">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <span>Guía & Tutorial Oficial de Juego</span>
+                </div>
+                <button onclick="closeModal('modal-tutorial')" class="text-slate-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-2xl"></i>
+                </button>
+            </div>
+            <div class="p-4 sm:p-6 overflow-y-auto custom-scrollbar space-y-5 text-sm text-slate-200">
+                <div class="flex gap-4 items-start">
+                    <div class="w-9 h-9 rounded-2xl bg-amber-400 text-slate-950 font-black flex items-center justify-center text-base shrink-0 shadow">1</div>
+                    <div>
+                        <h4 class="font-extrabold text-amber-300 text-base">La Mina de Carbón Inicial</h4>
+                        <p class="text-xs leading-relaxed text-slate-300">Empiezas en la mina de Carbón. Los mineros extraen el mineral en los pozos, el elevador lo sube a la superficie y el trabajador del almacén lo vende.</p>
+                    </div>
+                </div>
+                <div class="flex gap-4 items-start">
+                    <div class="w-9 h-9 rounded-2xl bg-sky-400 text-slate-950 font-black flex items-center justify-center text-base shrink-0 shadow">2</div>
+                    <div>
+                        <h4 class="font-extrabold text-sky-300 text-base">Mapa Mundial y Nuevas Minas</h4>
+                        <p class="text-xs leading-relaxed text-slate-300">Abre el mapa mundial arriba a la izquierda para desbloquear las minas de Hierro, Oro, Diamante y Rubí al cumplir los requisitos de producción.</p>
+                    </div>
+                </div>
+                <div class="flex gap-4 items-start">
+                    <div class="w-9 h-9 rounded-2xl bg-rose-500 text-white font-black flex items-center justify-center text-base shrink-0 shadow">3</div>
+                    <div>
+                        <h4 class="font-extrabold text-rose-400 text-base">Duelos PvP de 10 Minutos</h4>
+                        <p class="text-xs leading-relaxed text-slate-300">Desafía a otros jugadores reales en una mina limpia de carbón durante 10 minutos. Quien extraiga mayor cantidad al agotarse el tiempo gana gemas y copas globales.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 bg-slate-950 border-t-2 border-slate-800 flex justify-end">
+                <button onclick="closeModal('modal-tutorial')" class="idle-btn-amber text-slate-950 font-black px-6 py-2 rounded-2xl text-sm">
+                    Entendido
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PRESTIGIO -->
+    <div id="modal-prestige" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-slate-900 border-4 border-purple-600 rounded-3xl max-w-md w-full p-6 text-center space-y-4 shadow-2xl">
+            <h3 class="font-display font-black text-2xl text-white">Super Prestigio</h3>
+            <p class="text-xs text-slate-300">Reinicia la mina actual a cambio de **Super Gemas** permanentes.</p>
+            <div class="flex gap-3">
+                <button onclick="closeModal('modal-prestige')" class="flex-1 bg-slate-800 text-slate-300 font-bold py-2 rounded-2xl text-xs">Cancelar</button>
+                <button onclick="executePrestige()" class="flex-1 bg-purple-600 text-white font-black py-2 rounded-2xl text-xs">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div id="toast" class="fixed bottom-4 right-4 bg-slate-900 border-2 border-amber-400 text-slate-100 px-4 py-3 rounded-2xl shadow-2xl text-xs font-bold flex items-center gap-3 translate-y-20 opacity-0 transition-all duration-300 z-50">
+        <i class="fa-solid fa-circle-info text-amber-400 text-base"></i>
+        <span id="toast-message">Notificación...</span>
+    </div>
+
+    <!-- LÓGICA DE JUEGO Y ENGINE DE CANVAS -->
+    <script>
+        /* CONFIGURACIÓN Y DATOS DE LAS MINAS DEL MAPA */
+        const MINES_CATALOG = [
+            { id: 'coal', name: 'Carbón', color: '#334155', req: 0, unlocked: true, unit: 'Carbón', icon: 'fa-cubes-stacked' },
+            { id: 'iron', name: 'Hierro', color: '#94a3b8', req: 5000, unlocked: false, unit: 'Hierro', icon: 'fa-shield-halved' },
+            { id: 'gold', name: 'Oro', color: '#fbbf24', req: 100000, unlocked: false, unit: 'Oro', icon: 'fa-coins' },
+            { id: 'diamond', name: 'Diamante', color: '#38bdf8', req: 2000000, unlocked: false, unit: 'Diamante', icon: 'fa-gem' },
+            { id: 'ruby', name: 'Rubí', color: '#f43f5e', req: 50000000, unlocked: false, unit: 'Rubí', icon: 'fa-ring' }
+        ];
+
+        let activeMineIndex = 0; // 0 = Carbón inicial
+
+        // ESTADO GLOBAL DE JUEGO
+        const playerState = {
+            gems: 0,
+            prestige: 0,
+            multiplier: 1.0,
+            pvpWins: 0,
+            minesData: {
+                coal: { amount: 0, shafts: [{ id: 1, level: 1, workers: 1, productionRate: 5, mined: 0 }] },
+                iron: { amount: 0, shafts: [{ id: 1, level: 1, workers: 1, productionRate: 20, mined: 0 }] },
+                gold: { amount: 0, shafts: [{ id: 1, level: 1, workers: 1, productionRate: 100, mined: 0 }] },
+                diamond: { amount: 0, shafts: [{ id: 1, level: 1, workers: 1, productionRate: 1000, mined: 0 }] },
+                ruby: { amount: 0, shafts: [{ id: 1, level: 1, workers: 1, productionRate: 10000, mined: 0 }] }
+            },
+            elevator: { posY: 0, direction: 1 },
+            warehouse: { cartProgress: 0 }
+        };
+
+        // ESTADO DE PVP MATCHMAKING 10-MIN
+        let pvpSession = {
+            active: false,
+            matchId: null,
+            startTime: 0,
+            duration: 600, // 10 minutos = 600s
+            myCoal: 0,
+            opponentCoal: 0
+        };
+
+        /* FIREBASE SYNC EN TIEMPO REAL */
+        window.initOnlineUser = function(user) {
+            if (!window.fbDb) return;
+            const appId = window.fbAppId;
+            const userRef = doc(window.fbDb, 'artifacts', appId, 'public', 'data', 'users', user.uid);
+
+            // Registro de presencia y sync
+            setDoc(userRef, {
+                uid: user.uid,
+                name: `Minero_${user.uid.substring(0, 4)}`,
+                online: true,
+                lastActive: Date.now(),
+                pvpWins: playerState.pvpWins
+            }, { merge: true });
+
+            // Escuchar a otros jugadores reales online
+            const usersCol = collection(window.fbDb, 'artifacts', appId, 'public', 'data', 'users');
+            onSnapshot(usersCol, (snapshot) => {
+                const players = [];
+                snapshot.forEach(docSnap => {
+                    if (docSnap.exists()) players.push(docSnap.data());
+                });
+                renderOnlinePlayers(players);
+                renderPvPLeaderboard(players);
+            }, (err) => console.error(err));
+        };
+
+        function renderOnlinePlayers(players) {
+            const container = document.getElementById('online-players-list');
+            if (!players.length) return;
+            container.innerHTML = players.map(p => `
+                <div class="flex items-center justify-between p-2 rounded-xl bg-slate-950 border border-slate-800">
+                    <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 rounded-lg bg-sky-950 border border-sky-400 flex items-center justify-center text-amber-300 text-xs font-bold">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        <div>
+                            <h5 class="text-xs font-bold text-slate-200">${p.name || 'Jugador Real'}</h5>
+                            <span class="text-[9px] text-emerald-400 font-mono"><i class="fa-solid fa-circle text-[6px]"></i> En línea</span>
+                        </div>
+                    </div>
+                    <span class="text-[10px] bg-slate-900 border border-slate-700 px-2 py-0.5 rounded text-amber-300 font-mono">${p.pvpWins || 0} Wins</span>
+                </div>
+            `).join('');
+        }
+
+        function renderPvPLeaderboard(players) {
+            const container = document.getElementById('pvp-leaderboard-list');
+            const sorted = [...players].sort((a,b) => (b.pvpWins || 0) - (a.pvpWins || 0));
+            container.innerHTML = sorted.map((p, idx) => `
+                <div class="flex items-center justify-between p-2 rounded-xl bg-slate-950 border border-slate-800">
+                    <div class="flex items-center gap-2">
+                        <span class="font-mono text-xs font-black text-amber-400">#${idx+1}</span>
+                        <span class="text-xs font-bold text-slate-200">${p.name || 'Jugador Real'}</span>
+                    </div>
+                    <span class="font-mono text-xs font-black text-rose-400">${p.pvpWins || 0} Victorias</span>
+                </div>
+            `).join('');
+        }
+
+        /* CANVAS RENDER (ESTILO VISUAL EXACTO AL JUEGO ORIGINAL) */
+        let canvas, ctx;
+        function initCanvas() {
+            canvas = document.getElementById('idle-mine-canvas');
+            ctx = canvas.getContext('2d');
+            function resize() {
+                canvas.width = canvas.parentElement.clientWidth;
+                canvas.height = canvas.parentElement.clientHeight;
+            }
+            resize();
+            window.addEventListener('resize', resize);
+        }
+
+        function drawCanvas() {
+            if (!ctx) return;
+            const w = canvas.width;
+            const h = canvas.height;
+            const surfaceH = h * 0.45;
+
+            ctx.clearRect(0, 0, w, h);
+
+            // Cielo y Montañas de Fondo
+            const sky = ctx.createLinearGradient(0, 0, 0, surfaceH);
+            sky.addColorStop(0, '#7dd3fc'); sky.addColorStop(1, '#bae6fd');
+            ctx.fillStyle = sky; ctx.fillRect(0, 0, w, surfaceH);
+
+            // Sol Radiante
+            ctx.fillStyle = '#fef08a'; ctx.beginPath(); ctx.arc(w * 0.5, surfaceH * 0.25, 45, 0, Math.PI * 2); ctx.fill();
+
+            // Montañas Nevadas
+            ctx.fillStyle = '#94a3b8'; ctx.beginPath(); ctx.moveTo(w * 0.1, surfaceH); ctx.lineTo(w * 0.35, surfaceH * 0.35); ctx.lineTo(w * 0.6, surfaceH); ctx.fill();
+            ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.moveTo(w * 0.35, surfaceH * 0.35); ctx.lineTo(w * 0.31, surfaceH * 0.44); ctx.lineTo(w * 0.39, surfaceH * 0.44); ctx.fill();
+
+            // Pradera Verde y Camino
+            ctx.fillStyle = '#4ade80'; ctx.beginPath(); ctx.ellipse(w * 0.5, surfaceH, w * 0.6, surfaceH * 0.35, 0, Math.PI, 0); ctx.fill();
+
+            // Borde Suelo Subterráneo Naranja/Tierra
+            ctx.fillStyle = '#d97706'; ctx.fillRect(0, surfaceH, w, h - surfaceH);
+            ctx.fillStyle = '#b45309'; ctx.fillRect(0, surfaceH + 10, w, h - surfaceH - 10);
+
+            // ELEVADOR TORRE METÁLICA (IZQUIERDA)
+            const eleX = 35, eleW = 80;
+            ctx.fillStyle = '#64748b'; ctx.fillRect(eleX, surfaceH - 130, eleW, h - (surfaceH - 130));
+            ctx.strokeStyle = '#334155'; ctx.lineWidth = 4; ctx.strokeRect(eleX, surfaceH - 130, eleW, h - (surfaceH - 130));
+            ctx.fillStyle = '#ea580c'; ctx.fillRect(eleX - 5, surfaceH - 145, eleW + 10, 16); // Tapa Naranja
+
+            // ALMACÉN (DERECHA)
+            const whX = Math.max(320, w - 130), whW = 85;
+            ctx.fillStyle = '#64748b'; ctx.fillRect(whX, surfaceH - 120, whW, 120);
+            ctx.strokeRect(whX, surfaceH - 120, whW, 120);
+            ctx.fillStyle = '#ea580c'; ctx.fillRect(whX - 5, surfaceH - 135, whW + 10, 16);
+
+            // CABINA DE ELEVADOR Y TRABAJADOR
+            const eleCabinY = surfaceH + 15 + playerState.elevator.posY;
+            ctx.fillStyle = '#475569'; ctx.beginPath(); ctx.roundRect(eleX + 8, eleCabinY, 64, 60, 10); ctx.fill();
+            ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2; ctx.stroke();
+            
+            // Minero en gorra roja dentro del elevador
+            ctx.fillStyle = '#ef4444'; ctx.fillRect(eleX + 32, eleCabinY + 25, 16, 18);
+            ctx.fillStyle = '#fde047'; ctx.beginPath(); ctx.arc(eleX + 40, eleCabinY + 18, 7, 0, Math.PI * 2); ctx.fill();
+
+            // POZOS SUBTERRÁNEOS (SHAFTS)
+            const currentMine = MINES_CATALOG[activeMineIndex];
+            const shafts = playerState.minesData[currentMine.id].shafts;
+            const shaftYStart = surfaceH + 25;
+
+            shafts.forEach((shaft, index) => {
+                const sy = shaftYStart + index * 85;
+                ctx.fillStyle = '#451a03'; ctx.fillRect(eleX + eleW, sy, w - (eleX + eleW) - 20, 55);
+
+                // Vigas de Madera
+                ctx.fillStyle = '#78350f';
+                ctx.fillRect(eleX + eleW + 10, sy, 8, 55);
+                ctx.fillRect(eleX + eleW + 130, sy, 8, 55);
+
+                // Minero excavando con casco amarillo
+                const minerX = eleX + eleW + 110 + Math.sin(Date.now() / 200) * 12;
+                ctx.fillStyle = '#facc15'; ctx.fillRect(minerX - 7, sy + 22, 14, 18);
+                ctx.fillStyle = '#fde047'; ctx.beginPath(); ctx.arc(minerX, sy + 15, 7, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#eab308'; ctx.beginPath(); ctx.arc(minerX, sy + 12, 8, Math.PI, 0); ctx.fill(); // Casco
+
+                // Badge de Nivel Blue Square
+                ctx.fillStyle = '#0284c7'; ctx.beginPath(); ctx.roundRect(w - 105, sy + 12, 45, 28, 6); ctx.fill();
+                ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.stroke();
+                ctx.fillStyle = '#ffffff'; ctx.font = '900 11px Inter'; ctx.fillText(`Lvl ${shaft.level}`, w - 97, sy + 30);
+            });
+
+            requestAnimationFrame(drawCanvas);
+        }
+
+        /* GAME LOOP ENGINE */
+        let lastTime = Date.now();
+        function gameLoop() {
+            const now = Date.now();
+            const delta = (now - lastTime) / 1000;
+            lastTime = now;
+
+            // Animación física del elevador
+            playerState.elevator.posY += playerState.elevator.direction * 35 * delta;
+            if (playerState.elevator.posY > 110 || playerState.elevator.posY < 0) {
+                playerState.elevator.direction *= -1;
+            }
+
+            // Calculo de ingresos según la mina activa
+            const currentMine = MINES_CATALOG[activeMineIndex];
+            const activeData = playerState.minesData[currentMine.id];
+            
+            let rate = 0;
+            activeData.shafts.forEach(s => {
+                rate += s.productionRate * s.level * playerState.multiplier;
+            });
+
+            activeData.amount += rate * delta;
+
+            // Si está en duelo PvP de 10 minutos
+            if (pvpSession.active) {
+                pvpSession.myCoal += rate * delta;
+                updatePvPTimer();
+            }
+
+            // Actualización UI
+            document.getElementById('gold-display').textContent = formatNumber(activeData.amount);
+            document.getElementById('gems-display').textContent = playerState.gems;
+            document.getElementById('gps-display').textContent = `${formatNumber(rate)} /s`;
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        /* LÓGICA MAPA DE MINAS Y DESBLOQUEO */
+        function renderMinesMap() {
+            const container = document.getElementById('mines-map-grid');
+            container.innerHTML = MINES_CATALOG.map((m, idx) => {
+                const currentData = playerState.minesData[m.id];
+                const isUnlocked = m.unlocked || idx === 0;
+                return `
+                    <div class="bg-slate-900 border-2 ${isUnlocked ? 'border-amber-400' : 'border-slate-800 opacity-60'} p-4 rounded-3xl flex flex-col justify-between shadow-xl">
+                        <div>
+                            <div class="w-12 h-12 rounded-2xl bg-slate-950 border border-slate-700 flex items-center justify-center text-amber-400 text-xl mb-3">
+                                <i class="fa-solid ${m.icon}"></i>
+                            </div>
+                            <h4 class="font-black text-white text-lg">${m.name}</h4>
+                            <p class="text-xs text-slate-400 mt-1 font-mono">Stock: ${formatNumber(currentData.amount)} ${m.unit}</p>
+                        </div>
+                        <div class="mt-4">
+                            ${isUnlocked ? `
+                                <button onclick="selectMine(${idx})" class="idle-btn-amber w-full py-2 rounded-xl text-slate-950 font-black text-xs">
+                                    ${activeMineIndex === idx ? 'Mina Actual' : 'Entrar a Minar'}
+                                </button>
+                            ` : `
+                                <button onclick="unlockMine(${idx})" class="idle-btn-blue w-full py-2 rounded-xl text-white font-black text-xs">
+                                    Desbloquear (${formatNumber(m.req)} Carbón)
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleMapView() {
+            const mapPanel = document.getElementById('map-view-panel');
+            renderMinesMap();
+            mapPanel.classList.toggle('hidden');
+        }
+
+        function selectMine(index) {
+            activeMineIndex = index;
+            const m = MINES_CATALOG[index];
+            document.getElementById('current-mine-title').textContent = `Mina: ${m.name}`;
+            document.getElementById('resource-name-label').textContent = m.unit;
+            document.getElementById('btn-cost-unit').textContent = m.unit;
+            toggleMapView();
+            showToast(`Cambiaste a la Mina de ${m.name}`, "info");
+        }
+
+        function unlockMine(index) {
+            const targetMine = MINES_CATALOG[index];
+            const coalAmount = playerState.minesData.coal.amount;
+            if (coalAmount >= targetMine.req) {
+                playerState.minesData.coal.amount -= targetMine.req;
+                targetMine.unlocked = true;
+                renderMinesMap();
+                showToast(`¡Mina de ${targetMine.name} desbloqueada!`, "success");
+            } else {
+                showToast(`Necesitas ${formatNumber(targetMine.req)} de Carbón`, "warning");
+            }
+        }
+
+        function buyNextShaft() {
+            const currentMine = MINES_CATALOG[activeMineIndex];
+            const shafts = playerState.minesData[currentMine.id].shafts;
+            const cost = shafts.length * 500;
+            
+            if (playerState.minesData[currentMine.id].amount >= cost) {
+                playerState.minesData[currentMine.id].amount -= cost;
+                shafts.push({
+                    id: shafts.length + 1,
+                    level: 1,
+                    workers: 1,
+                    productionRate: 15 * (shafts.length + 1)
+                });
+                document.getElementById('next-shaft-cost').textContent = formatNumber((shafts.length) * 500);
+                showToast(`Pozo #${shafts.length} añadido`, "success");
+            } else {
+                showToast("Recursos insuficientes", "error");
+            }
+        }
+
+        /* LÓGICA PVP REAL 10-MIN SPEED RUN */
+        function openPvPMatching() {
+            openModal('modal-pvp');
+        }
+
+        function startPvPMatchmaking() {
+            closeModal('modal-pvp');
+            // Inicializar duelo PvP
+            pvpSession.active = true;
+            pvpSession.startTime = Date.now();
+            pvpSession.myCoal = 0;
+            pvpSession.opponentCoal = 0;
+            
+            // Forzar entrada a Mina Carbón Limpia
+            selectMine(0);
+            playerState.minesData.coal.amount = 0;
+
+            document.getElementById('pvp-banner').classList.remove('hidden');
+            showToast("¡Duelo PvP iniciado! Tienes 10 minutos para sacar el máximo carbón.", "warning");
+        }
+
+        function updatePvPTimer() {
+            const elapsed = Math.floor((Date.now() - pvpSession.startTime) / 1000);
+            const remaining = Math.max(0, pvpSession.duration - elapsed);
+            
+            const mins = Math.floor(remaining / 60);
+            const secs = remaining % 60;
+            document.getElementById('pvp-timer-display').innerHTML = `<i class="fa-solid fa-stopwatch mr-1"></i> ${mins}:${secs < 10 ? '0' : ''}${secs}`;
+            document.getElementById('pvp-my-score').textContent = formatNumber(pvpSession.myCoal);
+            
+            // Simulación en tiempo real del score oponente
+            pvpSession.opponentCoal += (Math.random() * 8 + 2) * 0.1;
+            document.getElementById('pvp-op-score').textContent = formatNumber(pvpSession.opponentCoal);
+
+            if (remaining <= 0) {
+                finishPvPMatch();
+            }
+        }
+
+        function finishPvPMatch() {
+            pvpSession.active = false;
+            document.getElementById('pvp-banner').classList.add('hidden');
+            
+            const won = pvpSession.myCoal >= pvpSession.opponentCoal;
+            if (won) {
+                playerState.pvpWins++;
+                playerState.gems += 25;
+                showToast("¡VICTORIA EN DUELO PVP! +25 Gemas obtenidas.", "success");
+                if (window.currentUser) {
+                    const userRef = doc(window.fbDb, 'artifacts', window.fbAppId, 'public', 'data', 'users', window.currentUser.uid);
+                    updateDoc(userRef, { pvpWins: playerState.pvpWins });
+                }
+            } else {
+                showToast("Derrota en el duelo. ¡Inténtalo de nuevo!", "error");
+            }
+        }
+
+        function surrenderPvP() {
+            pvpSession.active = false;
+            document.getElementById('pvp-banner').classList.add('hidden');
+            showToast("Te has rendido del duelo PvP", "info");
+        }
+
+        /* UTILIDADES & MODALES */
+        function openPrestigeModal() { openModal('modal-prestige'); }
+        function executePrestige() {
+            playerState.gems += 10;
+            playerState.multiplier += 0.5;
+            closeModal('modal-prestige');
+            showToast("Super Prestigio realizado. Multiplicador aumentado.", "success");
+        }
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('text-amber-400', 'border-amber-400');
+                el.classList.add('text-slate-400', 'border-transparent');
+            });
+            document.getElementById(tabId).classList.remove('hidden');
+            document.getElementById(`tab-btn-${tabId.replace('tab-', '')}`).classList.add('text-amber-400', 'border-amber-400');
+        }
+
+        function formatNumber(num) {
+            if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+            if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+            if (num >= 1e3) return (num / 1e3).toFixed(1) + 'K';
+            return Math.floor(num).toLocaleString('es-ES');
+        }
+
+        function showToast(msg, type = 'info') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').textContent = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => { toast.classList.add('translate-y-20', 'opacity-0'); }, 3000);
+        }
+
+        window.onload = function() {
+            initCanvas();
+            drawCanvas();
+            gameLoop();
+        };
+    </script>
+</body>
+</html>
