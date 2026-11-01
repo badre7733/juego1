@@ -81,6 +81,13 @@
         window.fbAuth = auth;
         window.fbDb = db;
         window.fbAppId = appId;
+        
+        // Expose Firestore helper methods to window scope
+        window.fbDoc = doc;
+        window.fbSetDoc = setDoc;
+        window.fbUpdateDoc = updateDoc;
+        window.fbCollection = collection;
+        window.fbOnSnapshot = onSnapshot;
 
         // Autenticación inicial
         async function initAuth() {
@@ -385,10 +392,10 @@
         window.initOnlineUser = function(user) {
             if (!window.fbDb) return;
             const appId = window.fbAppId;
-            const userRef = doc(window.fbDb, 'artifacts', appId, 'public', 'data', 'users', user.uid);
+            const userRef = window.fbDoc(window.fbDb, 'artifacts', appId, 'public', 'data', 'users', user.uid);
 
             // Registro de presencia y sync
-            setDoc(userRef, {
+            window.fbSetDoc(userRef, {
                 uid: user.uid,
                 name: `Minero_${user.uid.substring(0, 4)}`,
                 online: true,
@@ -397,8 +404,8 @@
             }, { merge: true });
 
             // Escuchar a otros jugadores reales online
-            const usersCol = collection(window.fbDb, 'artifacts', appId, 'public', 'data', 'users');
-            onSnapshot(usersCol, (snapshot) => {
+            const usersCol = window.fbCollection(window.fbDb, 'artifacts', appId, 'public', 'data', 'users');
+            window.fbOnSnapshot(usersCol, (snapshot) => {
                 const players = [];
                 snapshot.forEach(docSnap => {
                     if (docSnap.exists()) players.push(docSnap.data());
@@ -697,9 +704,9 @@
                 playerState.pvpWins++;
                 playerState.gems += 25;
                 showToast("¡VICTORIA EN DUELO PVP! +25 Gemas obtenidas.", "success");
-                if (window.currentUser) {
-                    const userRef = doc(window.fbDb, 'artifacts', window.fbAppId, 'public', 'data', 'users', window.currentUser.uid);
-                    updateDoc(userRef, { pvpWins: playerState.pvpWins });
+                if (window.currentUser && window.fbDb && window.fbDoc) {
+                    const userRef = window.fbDoc(window.fbDb, 'artifacts', window.fbAppId, 'public', 'data', 'users', window.currentUser.uid);
+                    window.fbUpdateDoc(userRef, { pvpWins: playerState.pvpWins });
                 }
             } else {
                 showToast("Derrota en el duelo. ¡Inténtalo de nuevo!", "error");
