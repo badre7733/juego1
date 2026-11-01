@@ -545,10 +545,14 @@
             const delta = (now - lastTime) / 1000;
             lastTime = now;
 
-            // Animación física del elevador
+            // Animación física del elevador (Límite seguro dentro del viewport)
             playerState.elevator.posY += playerState.elevator.direction * 35 * delta;
-            if (playerState.elevator.posY > 110 || playerState.elevator.posY < 0) {
-                playerState.elevator.direction *= -1;
+            if (playerState.elevator.posY > 110) {
+                playerState.elevator.posY = 110;
+                playerState.elevator.direction = -1;
+            } else if (playerState.elevator.posY < 0) {
+                playerState.elevator.posY = 0;
+                playerState.elevator.direction = 1;
             }
 
             // Calculo de ingresos según la mina activa
@@ -722,10 +726,36 @@
         /* UTILIDADES & MODALES */
         function openPrestigeModal() { openModal('modal-prestige'); }
         function executePrestige() {
-            playerState.gems += 10;
-            playerState.multiplier += 0.5;
+            const currentMine = MINES_CATALOG[activeMineIndex];
+            const activeData = playerState.minesData[currentMine.id];
+
+            // Requisitos mínimos para prestigiar (ej. al menos 2,000 acumulados)
+            if (activeData.amount < 1000 && activeData.shafts.length <= 1) {
+                showToast("¡Necesitas avanzar más en esta mina para ejecutar Prestigio!", "warning");
+                closeModal('modal-prestige');
+                return;
+            }
+
+            // 1. Resetear el recurso acumulado de esta mina a 0
+            activeData.amount = 0;
+
+            // 2. Resetear los pozos (shafts) a 1 pozo inicial de Nivel 1
+            activeData.shafts = [{ id: 1, level: 1, workers: 1, productionRate: currentMine.req > 0 ? currentMine.req / 100 : 5 }];
+
+            // 3. Resetear posición del ascensor y almacén
+            playerState.elevator.posY = 0;
+            playerState.elevator.direction = 1;
+
+            // 4. Otorgar recompensas permanentes de Prestigio
+            playerState.prestige += 1;
+            playerState.gems += 15;
+            playerState.multiplier *= 1.5; // Incremento multiplicativo permanente (+50%)
+
+            // Actualizar botones de coste en la UI
+            document.getElementById('next-shaft-cost').textContent = formatNumber(500);
+
             closeModal('modal-prestige');
-            showToast("Super Prestigio realizado. Multiplicador aumentado.", "success");
+            showToast(`¡Super Prestigio realizado! Mina reiniciada con x${playerState.multiplier.toFixed(1)} de Multiplicador + 15 Gemas`, "success");
         }
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
