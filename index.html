@@ -592,80 +592,119 @@
         /* ==========================================================================
            6. LÓGICA DE RED PEERJS (CON FALLBACK INSTANTÁNEO)
            ========================================================================== */
+        // Inicializa PeerJS usando un ID REAL asignado por el servidor.
+        // Nunca se inventa un ID local: un ID inventado no puede recibir conexiones.
         function initPeer(callback) {
-            if (state.peer && !state.peer.destroyed && state.peer.id) {
-                if (callback) callback(state.peer.id);
+            if (state.peer && !state.peer.destroyed && state.peer.open && state.peer.id) {
+                callback(state.peer.id, null);
                 return;
             }
 
+            if (state.peer && !state.peer.destroyed) {
+                try { state.peer.destroy(); } catch (e) {}
+            }
+            state.peer = null;
+
+            if (typeof Peer === 'undefined') {
+                callback(null, new Error("No se ha podido cargar PeerJS. Comprueba tu conexión a Internet."));
+                return;
+            }
+
+            let finished = false;
+            let peer;
+            const timeout = setTimeout(() => {
+                if (finished) return;
+                finished = true;
+                try { if (peer && !peer.destroyed) peer.destroy(); } catch (e) {}
+                if (state.peer === peer) state.peer = null;
+                callback(null, new Error(
+                    "PeerJS no ha respondido en 15 segundos. Comprueba Internet y abre el juego desde HTTPS o localhost."
+                ));
+            }, 15000);
+
             try {
-                // Instanciación PeerJS con fallback automático si tarda más de 2 segundos
-                let initialized = false;
-                state.peer = new Peer({
+                peer = new Peer(undefined, {
+                    debug: 1,
                     config: {
-                        'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }]
+                        iceServers: [
+                            { urls: "stun:stun.l.google.com:19302" },
+                            { urls: "stun:stun1.l.google.com:19302" }
+                        ]
                     }
                 });
+                state.peer = peer;
 
-                const fallbackTimer = setTimeout(() => {
-                    if (!initialized) {
-                        console.warn("PeerJS conexión lenta detectada. Activando ID local de respaldo.");
-                        const localId = 'QV-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-                        state.peer.id = localId;
-                        initialized = true;
-                        if (callback) callback(localId);
-                    }
-                }, 2000);
-
-                state.peer.on('open', id => {
-                    if (!initialized) {
-                        initialized = true;
-                        clearTimeout(fallbackTimer);
-                        if (callback) callback(id);
-                    }
+                peer.on('open', id => {
+                    if (finished) return;
+                    finished = true;
+                    clearTimeout(timeout);
+                    console.log("PeerJS listo. ID real:", id);
+                    callback(id, null);
                 });
 
-                state.peer.on('connection', conn => {
+                peer.on('connection', conn => {
+                    // El anfitrión acepta la conexión entrante.
                     state.conn = conn;
                     state.isHost = true;
                     state.isMultiplayer = true;
                     setupConnection();
                 });
 
-                state.peer.on('error', err => {
-                    console.warn("PeerJS error manejado:", err);
-                    if (!initialized) {
-                        initialized = true;
-                        clearTimeout(fallbackTimer);
-                        const localId = 'QV-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-                        state.peer.id = localId;
-                        if (callback) callback(localId);
+                peer.on('error', err => {
+                    console.error("Error PeerJS:", err);
+                    if (!finished) {
+                        finished = true;
+                        clearTimeout(timeout);
+                        try { if (peer && !peer.destroyed) peer.destroy(); } catch (e) {}
+                        if (state.peer === peer) state.peer = null;
+                        callback(null, err);
+                    } else if (err.type === 'disconnected') {
+                        console.warn("PeerJS se ha desconectado del servidor de señalización.");
                     }
                 });
 
+                peer.on('disconnected', () => {
+                    console.warn("PeerJS desconectado del servidor. Intentando reconectar...");
+                    if (!peer.destroyed) {
+                        try { peer.reconnect(); } catch (e) {
+                            console.error("No se pudo reconectar PeerJS:", e);
+                        }
+                    }
+                });
             } catch (e) {
-                console.warn("Excepción crítica PeerJS, usando ID local instantáneo.");
-                const localId = 'QV-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-                state.peer = { id: localId, destroyed: false, destroy: () => {} };
-                if (callback) callback(localId);
+                finished = true;
+                clearTimeout(timeout);
+                state.peer = null;
+                callback(null, e);
             }
         }
 
         function createRoom() {
             AudioFX.init();
-            initPeer(id => {
-                const peerId = id || (state.peer && state.peer.id ? state.peer.id : 'QV-1234');
-                state.roomCode = (peerId.length > 6 ? peerId.substring(0, 6) : peerId).toUpperCase();
-                state.isHost = true;
-                state.isMultiplayer = true;
-                
-                const codeDisplayEl = document.getElementById('roomCodeDisplay');
-                if (codeDisplayEl) {
-                    const spanEl = codeDisplayEl.querySelector('span');
-                    if (spanEl) spanEl.innerText = state.roomCode;
+
+            const statusEl = document.getElementById('roomStatusText');
+            const displaySec = document.getElementById('roomDisplaySection');
+            const codeText = document.getElementById('roomCodeText');
+
+            statusEl.innerText = "CONECTANDO CON EL SERVIDOR...";
+            codeText.innerText = "••••••••";
+            displaySec.classList.remove('hidden');
+
+            initPeer((peerId, error) => {
+                if (error || !peerId) {
+                    statusEl.innerText = "NO SE PUDO CREAR LA SALA";
+                    codeText.innerText = "ERROR";
+                    alert("No se pudo crear la sala: " + (error?.message || "Error de conexión con PeerJS."));
+                    return;
                 }
-                const displaySec = document.getElementById('roomDisplaySection');
-                if (displaySec) displaySec.classList.remove('hidden');
+
+                // El código debe ser el ID COMPLETO y auténtico de PeerJS.
+                state.roomCode = peerId;
+                state.isHost = true;
+                state.isMultiplayer = false; // Se activa al entrar el segundo jugador.
+                statusEl.innerText = "SALA ACTIVA · ESPERANDO AL RIVAL";
+                codeText.innerText = peerId;
+                console.log("Sala creada. Comparte este ID exacto:", peerId);
             });
         }
 
@@ -675,61 +714,125 @@
 
         function joinRoom() {
             AudioFX.init();
-            const code = document.getElementById('roomCodeInput').value.trim().toUpperCase();
+
+            const input = document.getElementById('roomCodeInput');
+            const code = input.value.trim();
+
             if (!code) {
-                alert("Por favor, introduce un código de sala válido.");
+                alert("Por favor, introduce el código de sala completo.");
                 return;
             }
-            
-            initPeer(() => {
-                if (!state.peer) {
-                    alert("Error al inicializar la red P2P.");
+
+            input.value = "CONECTANDO...";
+            input.disabled = true;
+
+            initPeer((myPeerId, error) => {
+                if (error || !myPeerId || !state.peer) {
+                    input.disabled = false;
+                    input.value = code;
+                    alert("No se pudo iniciar la conexión: " + (error?.message || "PeerJS no está disponible."));
                     return;
                 }
-                
-                // Asegurar formato correcto de conexión
-                const targetId = code.startsWith('QV-') ? code : 'QV-' + code;
-                console.log("Conectando a la sala:", targetId);
-                
-                state.conn = state.peer.connect(targetId);
-                state.isHost = false;
-                state.isMultiplayer = true;
-                
-                if (state.conn) {
+
+                // No añadir prefijos ni recortar el ID: se usa exactamente el código mostrado al anfitrión.
+                console.log("Conectando al ID PeerJS:", code);
+
+                try {
+                    state.isHost = false;
+                    state.isMultiplayer = true;
+                    state.conn = state.peer.connect(code, { reliable: true });
+
+                    if (!state.conn) throw new Error("PeerJS no ha creado el canal de conexión.");
+
                     setupConnection();
-                    // Feedback visual temporal
-                    document.getElementById('roomCodeInput').value = "CONECTANDO...";
-                } else {
-                    alert("No se pudo establecer la conexión con la sala.");
+
+                    // Evita que la interfaz se quede eternamente en "CONECTANDO".
+                    const pendingConn = state.conn;
+                    const connectTimeout = setTimeout(() => {
+                        if (pendingConn === state.conn && !pendingConn.open) {
+                            try { pendingConn.close(); } catch (e) {}
+                            state.conn = null;
+                            state.isMultiplayer = false;
+                            input.disabled = false;
+                            input.value = code;
+                            alert("No se ha podido conectar en 20 segundos. Comprueba que el anfitrión siga en la sala y que el código sea exacto.");
+                        }
+                    }, 20000);
+
+                    pendingConn.on('open', () => clearTimeout(connectTimeout));
+                    pendingConn.on('error', () => clearTimeout(connectTimeout));
+                    pendingConn.on('close', () => clearTimeout(connectTimeout));
+                } catch (e) {
+                    state.conn = null;
+                    state.isMultiplayer = false;
+                    input.disabled = false;
+                    input.value = code;
+                    alert("Error al intentar unirse: " + e.message);
                 }
             });
         }
 
         function setupConnection() {
             if (!state.conn) return;
-            
-            state.conn.on('open', () => {
+
+            const connection = state.conn;
+
+            connection.on('open', () => {
+                if (connection !== state.conn) return;
                 console.log("Conexión P2P establecida con éxito.");
                 sendNetworkData({ type: 'INIT_SHIP', shipId: state.equippedShipId });
+
+                const statusEl = document.getElementById('roomStatusText');
+                if (statusEl && state.isHost) statusEl.innerText = "RIVAL CONECTADO · ¡PREPARADOS!";
+                const input = document.getElementById('roomCodeInput');
+                if (input) {
+                    input.disabled = false;
+                    input.value = "";
+                }
+
                 if (state.isHost) startMatch(true);
             });
-            
-            state.conn.on('data', data => handleNetworkData(data));
-            
-            state.conn.on('error', err => {
-                console.error("Error en conexión P2P:", err);
-                alert("Error de conexión con el rival.");
+
+            connection.on('data', data => {
+                if (connection === state.conn) handleNetworkData(data);
             });
 
-            state.conn.on('close', () => { 
-                alert("El rival se ha desconectado."); 
-                endMatch(1); 
+            connection.on('error', err => {
+                console.error("Error en conexión P2P:", err);
+                if (connection === state.conn) {
+                    state.isMultiplayer = false;
+                    const input = document.getElementById('roomCodeInput');
+                    if (input) {
+                        input.disabled = false;
+                        if (input.value === "CONECTANDO...") input.value = "";
+                    }
+                    alert("Error de conexión con el rival. Comprueba el código y vuelve a intentarlo.");
+                }
+            });
+
+            connection.on('close', () => {
+                if (connection !== state.conn) return;
+                console.warn("El canal P2P se ha cerrado.");
+                state.conn = null;
+                state.isMultiplayer = false;
+
+                if (state.gameRunning) {
+                    alert("El rival se ha desconectado.");
+                    endMatch(1);
+                } else {
+                    const statusEl = document.getElementById('roomStatusText');
+                    if (statusEl) statusEl.innerText = "RIVAL DESCONECTADO · ESPERANDO...";
+                }
             });
         }
 
         function sendNetworkData(data) {
             if (state.conn && state.conn.open && typeof state.conn.send === 'function') {
-                state.conn.send(data);
+                try {
+                    state.conn.send(data);
+                } catch (e) {
+                    console.error("No se pudieron enviar datos:", e);
+                }
             }
         }
 
@@ -898,6 +1001,8 @@
             document.getElementById('touchControls').classList.add('hidden');
             document.getElementById('mainMenu').classList.remove('hidden');
             document.getElementById('roomDisplaySection').classList.add('hidden');
+            const joinInput = document.getElementById('roomCodeInput');
+            if (joinInput) { joinInput.disabled = false; joinInput.value = ''; }
         }
 
         /* ==========================================================================
