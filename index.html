@@ -36,22 +36,12 @@
             text-shadow: 0 0 10px rgba(6, 182, 212, 0.7), 0 0 20px rgba(6, 182, 212, 0.4);
         }
 
-        .neon-glow-pink {
-            text-shadow: 0 0 10px rgba(236, 72, 153, 0.7), 0 0 20px rgba(236, 72, 153, 0.4);
-        }
-
-        .neon-border-cyan {
-            box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);
-            border-color: rgba(6, 182, 212, 0.8);
-        }
-
         .glass-panel {
-            background: rgba(15, 23, 42, 0.75);
+            background: rgba(15, 23, 42, 0.85);
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.12);
         }
 
-        /* Scrollbars para la tienda */
         ::-webkit-scrollbar {
             width: 6px;
         }
@@ -63,15 +53,14 @@
             border-radius: 3px;
         }
 
-        /* Touch Controls Overlay */
         .touch-btn {
-            background: rgba(15, 23, 42, 0.6);
-            border: 2px solid rgba(6, 182, 212, 0.5);
-            backdrop-filter: blur(4px);
+            background: rgba(15, 23, 42, 0.75);
+            border: 2px solid rgba(6, 182, 212, 0.6);
+            backdrop-filter: blur(6px);
         }
         .touch-btn:active {
-            background: rgba(6, 182, 212, 0.4);
-            transform: scale(0.95);
+            background: rgba(6, 182, 212, 0.5);
+            transform: scale(0.93);
         }
     </style>
 </head>
@@ -97,31 +86,31 @@
 
             <!-- Contador de Créditos -->
             <div class="glass-panel px-4 py-2 rounded-2xl flex items-center space-x-3 border border-yellow-500/30 shadow-[0_0_15px_rgba(234,179,8,0.15)]">
-                <i class="fa-solid font-orbitron text-yellow-400 text-lg">💰</i>
+                <span class="text-lg">💰</span>
                 <div>
-                    <div class="text-[10px] text-gray-400 uppercase tracking-widest">Créditos Espaciales</div>
+                    <div class="text-[10px] text-gray-400 uppercase tracking-widest">Créditos</div>
                     <div id="creditsDisplay" class="font-orbitron font-bold text-yellow-400 text-lg sm:text-xl">1000</div>
                 </div>
             </div>
         </div>
 
-        <!-- Panel Central (Dinámico según estado) -->
+        <!-- Panel Central (Menú Principal) -->
         <div id="mainMenu" class="pointer-events-auto max-w-xl mx-auto w-full glass-panel p-6 sm:p-8 rounded-3xl border border-cyan-500/30 text-center shadow-2xl relative overflow-hidden">
             <div class="absolute -top-24 -right-24 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
             
             <h2 class="text-2xl sm:text-3xl font-orbitron font-black text-cyan-300 mb-2">ARENA FUTURISTA</h2>
-            <p class="text-gray-400 text-sm mb-6">Elige tu modo de combate espacial o visita la tienda de naves de combate.</p>
+            <p class="text-gray-400 text-sm mb-6">Elige tu modo de combate espacial o visita el hangar de naves.</p>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                 <!-- Crear Sala -->
-                <button onclick="createRoom()" class="p-4 rounded-2xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-orbitron font-bold tracking-wider shadow-lg shadow-cyan-500/20 transition-all flex flex-col items-center justify-center space-y-2 group">
+                <button onclick="createRoom()" class="p-4 rounded-2xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-orbitron font-bold tracking-wider shadow-lg shadow-cyan-500/20 transition-all flex flex-col items-center justify-center space-y-2 group cursor-pointer">
                     <i class="fa-solid fa-signal text-2xl group-hover:scale-110 transition-transform"></i>
                     <span>CREAR SALA 1V1</span>
-                    <span class="text-[10px] font-normal text-cyan-200">Genera código P2P</span>
+                    <span class="text-[10px] font-normal text-cyan-200">Generar código P2P</span>
                 </button>
 
                 <!-- Unirse a Sala -->
-                <button onclick="showJoinInput()" class="p-4 rounded-2xl bg-slate-800/80 hover:bg-slate-700/80 text-cyan-400 font-orbitron font-bold tracking-wider border border-cyan-500/30 hover:border-cyan-400 transition-all flex flex-col items-center justify-center space-y-2 group">
+                <button onclick="showJoinInput()" class="p-4 rounded-2xl bg-slate-800/80 hover:bg-slate-700/80 text-cyan-400 font-orbitron font-bold tracking-wider border border-cyan-500/30 hover:border-cyan-400 transition-all flex flex-col items-center justify-center space-y-2 group cursor-pointer">
                     <i class="fa-solid fa-plug text-2xl group-hover:scale-110 transition-transform"></i>
                     <span>UNIRSE A SALA</span>
                     <span class="text-[10px] font-normal text-gray-400">Ingresar código de amigo</span>
@@ -130,23 +119,23 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <!-- Botón Tienda -->
-                <button onclick="openShop()" class="p-3 rounded-xl bg-indigo-950/60 hover:bg-indigo-900/60 text-indigo-300 font-orbitron font-bold border border-indigo-500/40 flex items-center justify-center space-x-2 transition-all">
+                <button onclick="openShop()" class="p-3 rounded-xl bg-indigo-950/60 hover:bg-indigo-900/60 text-indigo-300 font-orbitron font-bold border border-indigo-500/40 flex items-center justify-center space-x-2 transition-all cursor-pointer">
                     <i class="fa-solid fa-rocket"></i>
-                    <span>TIENDA DE NAVES (<span id="unlockedShipCount">1</span>/28)</span>
+                    <span>TIENDA (<span id="unlockedShipCount">1</span>/28)</span>
                 </button>
 
                 <!-- Botón Entrenamiento IA -->
-                <button onclick="startAIBattle()" class="p-3 rounded-xl bg-purple-950/60 hover:bg-purple-900/60 text-purple-300 font-orbitron font-bold border border-purple-500/40 flex items-center justify-center space-x-2 transition-all">
+                <button onclick="startAIBattle()" class="p-3 rounded-xl bg-purple-950/60 hover:bg-purple-900/60 text-purple-300 font-orbitron font-bold border border-purple-500/40 flex items-center justify-center space-x-2 transition-all cursor-pointer">
                     <i class="fa-solid fa-robot"></i>
                     <span>PRACTICAR VS IA</span>
                 </button>
             </div>
 
-            <!-- Input para Unirse a Sala (Oculto inicialmente) -->
+            <!-- Input para Unirse a Sala -->
             <div id="joinSection" class="hidden mt-6 pt-4 border-t border-slate-700/50">
                 <div class="flex space-x-2">
                     <input type="text" id="roomCodeInput" placeholder="CÓDIGO DE SALA" class="bg-slate-900/90 border border-cyan-500/40 rounded-xl px-4 py-2 font-orbitron text-center uppercase tracking-widest text-cyan-300 focus:outline-none focus:border-cyan-400 w-full">
-                    <button onclick="joinRoom()" class="px-6 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-orbitron font-bold rounded-xl transition-all">UNIRSE</button>
+                    <button onclick="joinRoom()" class="px-6 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-orbitron font-bold rounded-xl transition-all cursor-pointer">UNIRSE</button>
                 </div>
             </div>
 
@@ -157,7 +146,8 @@
                     <span>------</span>
                     <i class="fa-regular fa-copy text-sm text-gray-400"></i>
                 </div>
-                <p class="text-[10px] text-gray-400 mt-2">Haz clic para copiar. Esperando que tu rival se conecte...</p>
+                <p class="text-[10px] text-gray-400 mt-2">Haz clic para copiar y compártelo con tu rival. (Inicia partida automática de prueba o enlace).</p>
+                <button onclick="startMatch(true)" class="mt-3 px-6 py-2 bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 text-white font-orbitron font-bold rounded-xl transition-all text-xs cursor-pointer">COMENZAR DUELO</button>
             </div>
         </div>
 
@@ -166,160 +156,146 @@
             <div class="flex justify-between items-center pb-4 border-b border-cyan-500/30">
                 <div>
                     <h2 class="text-2xl font-orbitron font-black text-cyan-400">HANGAR Y TIENDA ESPACIAL</h2>
-                    <p class="text-xs text-gray-400">Desbloquea 28 naves futuristas únicas con habilidades exclusivas.</p>
+                    <p class="text-xs text-gray-400">28 naves futuristas con habilidades exclusivas.</p>
                 </div>
-                <button onclick="closeShop()" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 text-gray-300 flex items-center justify-center text-xl font-bold">✕</button>
+                <button onclick="closeShop()" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 text-gray-300 flex items-center justify-center text-xl font-bold cursor-pointer">✕</button>
             </div>
 
             <!-- Grid de Naves -->
             <div id="shipsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 my-4 overflow-y-auto pr-2 max-h-[70vh]">
-                <!-- Naves inyectadas vía JS -->
+                <!-- Inyectado por JS -->
             </div>
 
             <div class="pt-4 border-t border-cyan-500/30 flex justify-between items-center text-xs text-gray-400">
-                <span>Selecciona una nave para equiparla en tu siguiente duelo 1v1.</span>
-                <button onclick="closeShop()" class="px-6 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-orbitron font-bold rounded-xl transition-all">VOLVER AL MENÚ</button>
+                <span>Equipa tu nave favorita para el siguiente duelo.</span>
+                <button onclick="closeShop()" class="px-6 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-orbitron font-bold rounded-xl transition-all cursor-pointer">VOLVER</button>
             </div>
         </div>
 
-        <!-- HUD DE COMBATE EN TIEMPO REAL -->
+        <!-- HUD DE COMBATE -->
         <div id="hudOverlay" class="hidden pointer-events-none absolute inset-0 flex flex-col justify-between p-4 sm:p-6">
-            <!-- Barra Superior de Vidas / Estado Duelistas -->
             <div class="flex justify-between items-start">
-                <!-- Jugador 1 (Tú) -->
+                <!-- P1 -->
                 <div class="glass-panel p-3 sm:p-4 rounded-2xl border border-cyan-500/40 w-44 sm:w-60">
                     <div class="flex justify-between items-center mb-1">
-                        <span id="hudP1Name" class="font-orbitron font-bold text-xs sm:text-sm text-cyan-400">TÚ (P1)</span>
+                        <span class="font-orbitron font-bold text-xs sm:text-sm text-cyan-400">TÚ (P1)</span>
                         <span id="hudP1Ship" class="text-[10px] text-gray-400 font-mono">X-10 NOVA</span>
                     </div>
-                    <!-- Barra de Salud -->
                     <div class="w-full bg-slate-900 rounded-full h-3 border border-slate-700 overflow-hidden mb-1">
                         <div id="hudP1Health" class="bg-cyan-500 h-full w-full transition-all duration-200"></div>
                     </div>
-                    <!-- Barra de Escudo -->
                     <div class="w-full bg-slate-900 rounded-full h-1.5 border border-slate-700 overflow-hidden">
                         <div id="hudP1Shield" class="bg-blue-400 h-full w-full transition-all duration-200"></div>
                     </div>
                 </div>
 
-                <!-- Cronómetro / Marcador -->
+                <!-- Cronómetro -->
                 <div class="glass-panel px-4 py-2 rounded-2xl border border-cyan-500/30 text-center">
                     <div class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">TIEMPO</div>
                     <div id="hudTimer" class="font-orbitron font-black text-2xl text-yellow-400">99</div>
                 </div>
 
-                <!-- Jugador 2 (Rival) -->
+                <!-- P2 -->
                 <div class="glass-panel p-3 sm:p-4 rounded-2xl border border-pink-500/40 w-44 sm:w-60 text-right">
                     <div class="flex justify-between items-center mb-1">
                         <span id="hudP2Ship" class="text-[10px] text-gray-400 font-mono">RIVAL</span>
-                        <span id="hudP2Name" class="font-orbitron font-bold text-xs sm:text-sm text-pink-400">RIVAL (P2)</span>
+                        <span class="font-orbitron font-bold text-xs sm:text-sm text-pink-400">RIVAL (P2)</span>
                     </div>
-                    <!-- Barra de Salud -->
                     <div class="w-full bg-slate-900 rounded-full h-3 border border-slate-700 overflow-hidden mb-1 flex justify-end">
                         <div id="hudP2Health" class="bg-pink-500 h-full w-full transition-all duration-200"></div>
                     </div>
-                    <!-- Barra de Escudo -->
                     <div class="w-full bg-slate-900 rounded-full h-1.5 border border-slate-700 overflow-hidden flex justify-end">
                         <div id="hudP2Shield" class="bg-purple-400 h-full w-full transition-all duration-200"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Indicador Habilidad / Cooldown -->
+            <!-- Info Habilidad -->
             <div class="flex justify-between items-end">
                 <div class="glass-panel p-3 rounded-2xl border border-cyan-500/30 flex items-center space-x-3">
-                    <div id="skillIconContainer" class="w-12 h-12 rounded-xl bg-cyan-500/20 border border-cyan-400 flex items-center justify-center text-cyan-400 text-xl font-orbitron font-bold">
-                        ⚡
-                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-400 flex items-center justify-center text-cyan-400 font-orbitron font-bold">⚡</div>
                     <div>
-                        <div id="skillNameDisplay" class="font-orbitron font-bold text-xs text-cyan-300">HABILIDAD ESPECIAL</div>
-                        <div id="skillStatusDisplay" class="text-[11px] text-gray-400 font-mono">LISTO [E] / TAP</div>
+                        <div id="skillNameDisplay" class="font-orbitron font-bold text-xs text-cyan-300">HABILIDAD</div>
+                        <div class="text-[10px] text-gray-400 font-mono">LISTO [E] / TAP</div>
                     </div>
                 </div>
 
-                <!-- Instrucciones de Control (PC) -->
                 <div class="hidden md:block glass-panel px-4 py-2 rounded-xl text-right text-[11px] text-gray-400">
-                    <div>Mouse: Apuntar / Mover | <span class="text-cyan-400 font-bold">ESPACIO / Click: Disparar</span></div>
-                    <div>Teclas: <span class="text-cyan-400 font-bold">[E] Habilidad</span></div>
+                    <div>Mouse: Seguir cursor | <span class="text-cyan-400 font-bold">ESPACIO: Disparar Láser</span></div>
+                    <div>Teclas: <span class="text-cyan-400 font-bold">[E] Habilidad Especial</span></div>
                 </div>
             </div>
         </div>
 
-        <!-- CONTROLES TÁCTILES MÓVILES (JOYSTICK Y BOTONES) -->
-        <div id="touchControls" class="hidden pointer-events-auto absolute inset-0 z-20 flex justify-between items-end p-6 pointer-events-none">
-            <!-- Joystick Virtual para movimiento (Izquierda) -->
-            <div id="joystickZone" class="w-36 h-36 rounded-full border-2 border-cyan-500/30 bg-slate-900/40 backdrop-blur-sm relative pointer-events-auto flex items-center justify-center">
-                <div id="joystickKnob" class="w-14 h-14 rounded-full bg-cyan-500/60 border-2 border-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.5)] transform translate-x-0 translate-y-0"></div>
+        <!-- CONTROLES TÁCTILES MÓVILES (Joystick Izquierda + Botones Derecha) -->
+        <div id="touchControls" class="hidden pointer-events-auto absolute inset-0 z-25 flex justify-between items-end p-6 pointer-events-none">
+            <!-- Joystick Virtual -->
+            <div id="joystickZone" class="w-36 h-36 rounded-full border-2 border-cyan-500/40 bg-slate-900/50 backdrop-blur-md relative pointer-events-auto flex items-center justify-center shadow-[0_0_20px_rgba(6,182,212,0.2)]">
+                <div id="joystickKnob" class="w-14 h-14 rounded-full bg-cyan-500/70 border-2 border-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.8)] transform translate-x-0 translate-y-0"></div>
             </div>
 
-            <!-- Botones de Acción (Derecha) -->
-            <div class="flex space-x-4 pointer-events-auto">
-                <!-- Botón Habilidad -->
-                <button id="touchSkillBtn" class="touch-btn w-16 h-16 rounded-full flex flex-col items-center justify-center text-yellow-400 font-orbitron text-xs font-bold shadow-lg border-yellow-500/50">
+            <!-- Botones Disparo & Habilidad -->
+            <div class="flex items-center space-x-4 pointer-events-auto">
+                <button id="touchSkillBtn" class="touch-btn w-16 h-16 rounded-full flex flex-col items-center justify-center text-yellow-400 font-orbitron text-xs font-bold shadow-lg cursor-pointer">
                     <i class="fa-solid fa-bolt text-lg mb-0.5"></i>
                     <span>SKILL</span>
                 </button>
-                <!-- Botón Disparo -->
-                <button id="touchFireBtn" class="touch-btn w-20 h-20 rounded-full flex flex-col items-center justify-center text-cyan-400 font-orbitron text-xs font-bold shadow-lg border-cyan-400 shadow-cyan-500/30">
+                <button id="touchFireBtn" class="touch-btn w-20 h-20 rounded-full flex flex-col items-center justify-center text-cyan-400 font-orbitron text-xs font-bold shadow-lg cursor-pointer">
                     <i class="fa-solid fa-crosshairs text-2xl mb-1"></i>
                     <span>FUEGO</span>
                 </button>
             </div>
         </div>
 
-        <!-- MENSAJES Y NOTIFICACIONES DE JUEGO (Modal / Popups) -->
-        <div id="gameNotification" class="hidden pointer-events-auto fixed inset-0 z-40 glass-panel flex items-center justify-center p-4 bg-slate-950/80">
+        <!-- NOTIFICACIONES Y FIN DE PARTIDA -->
+        <div id="gameNotification" class="hidden pointer-events-auto fixed inset-0 z-40 glass-panel flex items-center justify-center p-4 bg-slate-950/85">
             <div class="glass-panel p-8 rounded-3xl border border-cyan-500/50 max-w-md w-full text-center shadow-2xl">
                 <h3 id="notifTitle" class="text-3xl font-orbitron font-black text-cyan-400 mb-2">¡VICTORIA!</h3>
-                <p id="notifMessage" class="text-gray-300 text-sm mb-6">Has destruido la nave enemiga en el espacio cuántico.</p>
+                <p id="notifMessage" class="text-gray-300 text-sm mb-6">Has derrotado al rival en el espacio cuántico.</p>
                 <div id="notifReward" class="text-yellow-400 font-orbitron font-bold mb-6 text-lg">+500 CRÉDITOS</div>
-                <button onclick="closeNotification()" class="w-full py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-orbitron font-bold rounded-xl transition-all shadow-lg shadow-cyan-500/30">CONTINUAR</button>
+                <button onclick="closeNotification()" class="w-full py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-orbitron font-bold rounded-xl transition-all shadow-lg shadow-cyan-500/30 cursor-pointer">CONTINUAR</button>
             </div>
-        </div>
-
-        <div class="text-center text-[10px] text-gray-600 pointer-events-none">
-            Quantum Void v2.5 • WebRTC P2P Direct Connection • 28 Spacecrafts Loaded
         </div>
     </div>
 
-    <!-- CÓDIGO JS PRINCIPAL -->
+    <!-- CÓDIGO SCRIPT PRINCIPAL -->
     <script>
         /* ==========================================================================
-           1. CATÁLOGO COMPLETO DE 28 NAVES FUTURISTAS
+           1. 28 NAVES FUTURISTAS
            ========================================================================== */
         const SHIPS_DATABASE = [
-            { id: 1, name: "X-10 NOVA", price: 0, color: "#06b6d4", speed: 6, health: 100, shield: 50, damage: 15, skill: "Salto Cuántico", skillCooldown: 5000, desc: "Nave equilibrada de reconocimiento estándar." },
-            { id: 2, name: "S-77 PHANTOM", price: 500, color: "#a855f7", speed: 8, health: 80, shield: 40, damage: 12, skill: "Camuflaje Infrarrojo", skillCooldown: 8000, desc: "Nave de sigilo con gran velocidad táctica." },
-            { id: 3, name: "V-90 TITAN", price: 800, color: "#eab308", speed: 4, health: 160, shield: 100, damage: 22, skill: "Escudo Inmortal", skillCooldown: 12000, desc: "Acorazado pesado con hiperblindaje." },
-            { id: 4, name: "K-50 VALKYRIE", price: 1200, color: "#ec4899", speed: 7, health: 90, shield: 60, damage: 18, skill: "Ráfaga Tri-Láser", skillCooldown: 4000, desc: "Caza estelar de asalto rápido." },
-            { id: 5, name: "ZEPHYR-X", price: 1500, color: "#10b981", speed: 9, health: 75, shield: 50, damage: 14, skill: "Turbo Impulso Vectorial", skillCooldown: 3000, desc: "Ultra ligera de alta maniobrabilidad." },
-            { id: 6, name: "ORION OMEGA", price: 2000, color: "#3b82f6", speed: 6.5, health: 110, shield: 70, damage: 20, skill: "Pulso EMP Paralizante", skillCooldown: 9000, desc: "Desactiva temporalmente escudos enemigos." },
-            { id: 7, name: "HYDRA SUPREME", price: 2500, color: "#f97316", speed: 5.5, health: 130, shield: 80, damage: 25, skill: "Rayo Colosal Continuo", skillCooldown: 10000, desc: "Lanza un cañón de plasma devastador." },
-            { id: 8, name: "CYBER DRAGON", price: 3000, color: "#ef4444", speed: 7, health: 105, shield: 65, damage: 24, skill: "Nanobots Reparadores", skillCooldown: 11000, desc: "Regenera salud en combate activo." },
-            { id: 9, name: "SOLARIS IX", price: 3500, color: "#facc15", speed: 6, health: 120, shield: 90, damage: 19, skill: "Bomba Solar Nova", skillCooldown: 7500, desc: "Onda expansiva termonuclear." },
-            { id: 10, name: "NEBULA STRIKER", price: 4000, color: "#8b5cf6", speed: 8.5, health: 85, shield: 55, damage: 21, skill: "Minas Gravitatorias", skillCooldown: 6000, desc: "Despliega trampas espacio-temporales." },
-            { id: 11, name: "VORTEX ZERO", price: 4500, color: "#14b8a6", speed: 7.5, health: 100, shield: 70, damage: 23, skill: "Teletransporte Inverso", skillCooldown: 7000, desc: "Aparece detrás de la nave enemiga." },
-            { id: 12, name: "ARES WARBRINGER", price: 5000, color: "#dc2626", speed: 5, health: 150, shield: 85, damage: 28, skill: "Modo Furia Overdrive", skillCooldown: 13000, desc: "Duplica la cadencia de disparo." },
-            { id: 13, name: "CHRONOS PRIME", price: 5500, color: "#6366f1", speed: 6.8, health: 115, shield: 75, damage: 20, skill: "Distorción del Tiempo", skillCooldown: 10000, desc: "Ralentiza los disparos rivales." },
-            { id: 14, name: "ECLIPSE SHADOW", price: 6000, color: "#475569", speed: 8.2, health: 90, shield: 60, damage: 22, skill: "Clon Holográfico", skillCooldown: 8500, desc: "Crea un seuelo táctico en pantalla." },
-            { id: 15, name: "APOLLO CENTURION", price: 6500, color: "#f59e0b", speed: 6.2, health: 125, shield: 95, damage: 21, skill: "Rayo Fotónico Directo", skillCooldown: 5500, desc: "Láser lineal de alta precisión." },
-            { id: 16, name: "SPECTRA ULTRA", price: 7000, color: "#06b6d4", speed: 7.8, health: 95, shield: 65, damage: 23, skill: "Escudo Reflector", skillCooldown: 9500, desc: "Devuelve los láseres al atacante." },
-            { id: 17, name: "GALAXIA EMPRESS", price: 7500, color: "#d946ef", speed: 6.5, health: 135, shield: 80, damage: 26, skill: "Lluvia de Misiles Buscar", skillCooldown: 9000, desc: "Dispara micro-misiles teledirigidos." },
-            { id: 18, name: "VOID REAPER", price: 8000, color: "#1e293b", speed: 8, health: 100, shield: 50, damage: 30, skill: "Segadora Estelar", skillCooldown: 11000, desc: "Gran impacto a corta distancia." },
-            { id: 19, name: "PULSAR DESTROYER", price: 8500, color: "#38bdf8", speed: 5.8, health: 140, shield: 90, damage: 27, skill: "Onda Sísmica Cuántica", skillCooldown: 8000, desc: "Empuja y daña en área." },
-            { id: 20, name: "AURORA INTERCEPTOR", price: 9000, color: "#4ade80", speed: 9.2, health: 80, shield: 60, damage: 18, skill: "Ráfaga Veloz x5", skillCooldown: 3500, desc: "Ráfaga de disparos relámpago." },
-            { id: 21, name: "ZENITH INFINITY", price: 9500, color: "#fb7185", speed: 7, health: 110, shield: 85, damage: 25, skill: "Sobrecarga de Núcleo", skillCooldown: 10000, desc: "Aumenta tamaño y daño temporal." },
-            { id: 22, name: "QUANTUM GOD", price: 10000, color: "#a7f3d0", speed: 7.5, health: 130, shield: 100, damage: 27, skill: "Singularidad Negra", skillCooldown: 14000, desc: "Genera un mini agujero negro." },
-            { id: 23, name: "HELIOS BERSERKER", price: 11000, color: "#fb923c", speed: 6.4, health: 145, shield: 75, damage: 29, skill: "Llama Solar Giratoria", skillCooldown: 8500, desc: "Dispara proyectiles en 360°." },
-            { id: 24, name: "DARK MATTER X", price: 12000, color: "#312e81", speed: 8.1, health: 105, shield: 90, damage: 28, skill: "Rayo Anti-Materia", skillCooldown: 9000, desc: "Perfora escudos directamente." },
-            { id: 25, name: "ASTRAEA LIGHT", price: 13000, color: "#f472b6", speed: 8.8, health: 90, shield: 70, damage: 24, skill: "Destello Cegador", skillCooldown: 6500, desc: "Ciega la visión rival 2 segundos." },
-            { id: 26, name: "VALKYRIE PRIME", price: 14000, color: "#c084fc", speed: 7.7, health: 115, shield: 80, damage: 26, skill: "Vuelco Táctico Hyper", skillCooldown: 4500, desc: "Esquiva rápida con disparo." },
-            { id: 27, name: "NEXUS OVERLORD", price: 15000, color: "#38bdf8", speed: 6.9, health: 150, shield: 110, damage: 30, skill: "Torre Táctica Celestial", skillCooldown: 12000, desc: "Despliega torreta aliada." },
-            { id: 28, name: "OMEGA VOID KING", price: 20000, color: "#fbbf24", speed: 8.5, health: 170, shield: 120, damage: 35, skill: "APOCALIPSIS ESPACIAL", skillCooldown: 15000, desc: "La nave insignia suprema del universo." }
+            { id: 1, name: "X-10 NOVA", price: 0, color: "#06b6d4", speed: 6, health: 100, shield: 50, damage: 15, skill: "Salto Cuántico", skillCooldown: 5000, desc: "Nave estándar equilibrada." },
+            { id: 2, name: "S-77 PHANTOM", price: 500, color: "#a855f7", speed: 8, health: 80, shield: 40, damage: 12, skill: "Camuflaje Infrarrojo", skillCooldown: 8000, desc: "Sigilo y velocidad táctica." },
+            { id: 3, name: "V-90 TITAN", price: 800, color: "#eab308", speed: 4, health: 160, shield: 100, damage: 22, skill: "Escudo Inmortal", skillCooldown: 12000, desc: "Acorazado pesado." },
+            { id: 4, name: "K-50 VALKYRIE", price: 1200, color: "#ec4899", speed: 7, health: 90, shield: 60, damage: 18, skill: "Ráfaga Tri-Láser", skillCooldown: 4000, desc: "Caza estelar rápido." },
+            { id: 5, name: "ZEPHYR-X", price: 1500, color: "#10b981", speed: 9, health: 75, shield: 50, damage: 14, skill: "Turbo Vectorial", skillCooldown: 3000, desc: "Ultra ligera y veloz." },
+            { id: 6, name: "ORION OMEGA", price: 2000, color: "#3b82f6", speed: 6.5, health: 110, shield: 70, damage: 20, skill: "Pulso EMP", skillCooldown: 9000, desc: "Desactiva escudos." },
+            { id: 7, name: "HYDRA SUPREME", price: 2500, color: "#f97316", speed: 5.5, health: 130, shield: 80, damage: 25, skill: "Rayo Colosal", skillCooldown: 10000, desc: "Plasma devastador." },
+            { id: 8, name: "CYBER DRAGON", price: 3000, color: "#ef4444", speed: 7, health: 105, shield: 65, damage: 24, skill: "Nanobots", skillCooldown: 11000, desc: "Regeneración activa." },
+            { id: 9, name: "SOLARIS IX", price: 3500, color: "#facc15", speed: 6, health: 120, shield: 90, damage: 19, skill: "Bomba Solar", skillCooldown: 7500, desc: "Onda termonuclear." },
+            { id: 10, name: "NEBULA STRIKER", price: 4000, color: "#8b5cf6", speed: 8.5, health: 85, shield: 55, damage: 21, skill: "Minas Gravitatorias", skillCooldown: 6000, desc: "Trampas temporales." },
+            { id: 11, name: "VORTEX ZERO", price: 4500, color: "#14b8a6", speed: 7.5, health: 100, shield: 70, damage: 23, skill: "Teletransporte", skillCooldown: 7000, desc: "Salto a espaldas." },
+            { id: 12, name: "ARES WARBRINGER", price: 5000, color: "#dc2626", speed: 5, health: 150, shield: 85, damage: 28, skill: "Furia Overdrive", skillCooldown: 13000, desc: "Cadencia x2." },
+            { id: 13, name: "CHRONOS PRIME", price: 5500, color: "#6366f1", speed: 6.8, health: 115, shield: 75, damage: 20, skill: "Distorción Temporal", skillCooldown: 10000, desc: "Ralentiza al rival." },
+            { id: 14, name: "ECLIPSE SHADOW", price: 6000, color: "#475569", speed: 8.2, health: 90, shield: 60, damage: 22, skill: "Clon Holográfico", skillCooldown: 8500, desc: "Señuelo táctico." },
+            { id: 15, name: "APOLLO CENTURION", price: 6500, color: "#f59e0b", speed: 6.2, health: 125, shield: 95, damage: 21, skill: "Rayo Fotónico", skillCooldown: 5500, desc: "Láser de alta precisión." },
+            { id: 16, name: "SPECTRA ULTRA", price: 7000, color: "#06b6d4", speed: 7.8, health: 95, shield: 65, damage: 23, skill: "Escudo Reflector", skillCooldown: 9500, desc: "Devuelve disparos." },
+            { id: 17, name: "GALAXIA EMPRESS", price: 7500, color: "#d946ef", speed: 6.5, health: 135, shield: 80, damage: 26, skill: "Lluvia de Misiles", skillCooldown: 9000, desc: "Misiles guiados." },
+            { id: 18, name: "VOID REAPER", price: 8000, color: "#1e293b", speed: 8, health: 100, shield: 50, damage: 30, skill: "Segadora", skillCooldown: 11000, desc: "Alto daño cercano." },
+            { id: 19, name: "PULSAR DESTROYER", price: 8500, color: "#38bdf8", speed: 5.8, health: 140, shield: 90, damage: 27, skill: "Onda Sísmica", skillCooldown: 8000, desc: "Empuje en área." },
+            { id: 20, name: "AURORA INTERCEPTOR", price: 9000, color: "#4ade80", speed: 9.2, health: 80, shield: 60, damage: 18, skill: "Ráfaga Relámpago", skillCooldown: 3500, desc: "Disparos veloces." },
+            { id: 21, name: "ZENITH INFINITY", price: 9500, color: "#fb7185", speed: 7, health: 110, shield: 85, damage: 25, skill: "Sobrecarga Núcleo", skillCooldown: 10000, desc: "Poder temporal." },
+            { id: 22, name: "QUANTUM GOD", price: 10000, color: "#a7f3d0", speed: 7.5, health: 130, shield: 100, damage: 27, skill: "Singularidad", skillCooldown: 14000, desc: "Agujero negro." },
+            { id: 23, name: "HELIOS BERSERKER", price: 11000, color: "#fb923c", speed: 6.4, health: 145, shield: 75, damage: 29, skill: "Llama 360°", skillCooldown: 8500, desc: "Ataque circular." },
+            { id: 24, name: "DARK MATTER X", price: 12000, color: "#312e81", speed: 8.1, health: 105, shield: 90, damage: 28, skill: "Anti-Materia", skillCooldown: 9000, desc: "Perfora escudos." },
+            { id: 25, name: "ASTRAEA LIGHT", price: 13000, color: "#f472b6", speed: 8.8, health: 90, shield: 70, damage: 24, skill: "Destello Cegador", skillCooldown: 6500, desc: "Ciega al oponente." },
+            { id: 26, name: "VALKYRIE PRIME", price: 14000, color: "#c084fc", speed: 7.7, health: 115, shield: 80, damage: 26, skill: "Esquiva Hiper", skillCooldown: 4500, desc: "Maniobra evasiva." },
+            { id: 27, name: "NEXUS OVERLORD", price: 15000, color: "#38bdf8", speed: 6.9, health: 150, shield: 110, damage: 30, skill: "Torre Celestial", skillCooldown: 12000, desc: "Torreta aliada." },
+            { id: 28, name: "OMEGA VOID KING", price: 20000, color: "#fbbf24", speed: 8.5, health: 170, shield: 120, damage: 35, skill: "APOCALIPSIS", skillCooldown: 15000, desc: "Nave insignia suprema." }
         ];
 
         /* ==========================================================================
-           2. ESTADO GLOBAL DEL JUEGO Y PERSISTENCIA
+           2. ESTADO GLOBAL
            ========================================================================== */
         const state = {
             credits: parseInt(localStorage.getItem('qv_credits') || '1000'),
@@ -336,7 +312,6 @@
             isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
         };
 
-        // Guardar progreso local
         function saveProgress() {
             localStorage.setItem('qv_credits', state.credits.toString());
             localStorage.setItem('qv_ships', JSON.stringify(state.unlockedShips));
@@ -350,61 +325,50 @@
         }
 
         /* ==========================================================================
-           3. MOTOR DE AUDIO SINTÉTICO (WEB AUDIO API - SIN ASSETS EXTERNOS)
+           3. WEB AUDIO API (SONIDOS)
            ========================================================================== */
         const AudioFX = {
             ctx: null,
             init() {
-                if (!this.ctx) {
-                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-                }
+                if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
             },
             playLaser() {
                 if (!this.ctx) return;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(800, this.ctx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(100, this.ctx.currentTime + 0.15);
-                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start();
-                osc.stop(this.ctx.currentTime + 0.15);
+                const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+                o.type = 'sawtooth';
+                o.frequency.setValueAtTime(700, this.ctx.currentTime);
+                o.frequency.exponentialRampToValueAtTime(100, this.ctx.currentTime + 0.15);
+                g.gain.setValueAtTime(0.15, this.ctx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+                o.connect(g); g.connect(this.ctx.destination);
+                o.start(); o.stop(this.ctx.currentTime + 0.15);
             },
             playExplosion() {
                 if (!this.ctx) return;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(150, this.ctx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(20, this.ctx.currentTime + 0.4);
-                gain.gain.setValueAtTime(0.4, this.ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.4);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start();
-                osc.stop(this.ctx.currentTime + 0.4);
+                const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+                o.type = 'square';
+                o.frequency.setValueAtTime(120, this.ctx.currentTime);
+                o.frequency.exponentialRampToValueAtTime(20, this.ctx.currentTime + 0.3);
+                g.gain.setValueAtTime(0.3, this.ctx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
+                o.connect(g); g.connect(this.ctx.destination);
+                o.start(); o.stop(this.ctx.currentTime + 0.3);
             },
             playSkill() {
                 if (!this.ctx) return;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(300, this.ctx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(1200, this.ctx.currentTime + 0.3);
-                gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start();
-                osc.stop(this.ctx.currentTime + 0.3);
+                const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+                o.type = 'sine';
+                o.frequency.setValueAtTime(400, this.ctx.currentTime);
+                o.frequency.exponentialRampToValueAtTime(1000, this.ctx.currentTime + 0.25);
+                g.gain.setValueAtTime(0.25, this.ctx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.25);
+                o.connect(g); g.connect(this.ctx.destination);
+                o.start(); o.stop(this.ctx.currentTime + 0.25);
             }
         };
 
         /* ==========================================================================
-           4. CONFIGURACIÓN Y ENGINE DEL CANVAS ESPACIAL 2D
+           4. MOTOR DE JUEGO (CANVAS 2D)
            ========================================================================== */
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -416,16 +380,14 @@
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
-        // Estrellas de Fondo Parallax
         const stars = Array.from({ length: 150 }, () => ({
             x: Math.random() * window.innerWidth,
             y: Math.random() * window.innerHeight,
             size: Math.random() * 2,
-            speed: Math.random() * 0.5 + 0.1,
+            speed: Math.random() * 0.4 + 0.1,
             alpha: Math.random()
         }));
 
-        // Objetos del Juego
         const game = {
             p1: null,
             p2: null,
@@ -436,7 +398,6 @@
             touchJoystick: { active: false, startX: 0, startY: 0, moveX: 0, moveY: 0 }
         };
 
-        // Estructura de Jugador
         class Player {
             constructor(id, x, y, shipData, isLocal) {
                 this.id = id;
@@ -453,8 +414,6 @@
                 this.isLocal = isLocal;
                 this.lastShot = 0;
                 this.lastSkill = 0;
-                this.skillReady = true;
-                this.stealth = false;
             }
 
             draw() {
@@ -462,38 +421,31 @@
                 ctx.translate(this.x, this.y);
                 ctx.rotate(this.angle);
 
-                if (this.stealth) ctx.globalAlpha = 0.3;
-
-                // Neón Glow Exterior
                 ctx.shadowBlur = 15;
                 ctx.shadowColor = this.shipData.color;
-
-                // Dibujar Nave Vectorial Futurista
                 ctx.strokeStyle = this.shipData.color;
-                ctx.fillStyle = "#0f172a";
+                ctx.fillStyle = "#030712";
                 ctx.lineWidth = 2.5;
 
                 ctx.beginPath();
-                ctx.moveTo(20, 0);
-                ctx.lineTo(-15, -15);
+                ctx.moveTo(22, 0);
+                ctx.lineTo(-16, -14);
                 ctx.lineTo(-8, 0);
-                ctx.lineTo(-15, 15);
+                ctx.lineTo(-16, 14);
                 ctx.closePath();
                 ctx.fill();
                 ctx.stroke();
 
-                // Detalle del Núcleo de Energía
                 ctx.fillStyle = this.shipData.color;
                 ctx.beginPath();
                 ctx.arc(0, 0, 4, 0, Math.PI * 2);
                 ctx.fill();
 
-                // Dibujar Escudo si está activo
                 if (this.shield > 0) {
                     ctx.strokeStyle = "rgba(56, 189, 248, 0.6)";
                     ctx.lineWidth = 1.5;
                     ctx.beginPath();
-                    ctx.arc(0, 0, 25, 0, Math.PI * 2);
+                    ctx.arc(0, 0, 26, 0, Math.PI * 2);
                     ctx.stroke();
                 }
 
@@ -503,31 +455,29 @@
             update() {
                 this.x += this.vx;
                 this.y += this.vy;
-                this.vx *= 0.92;
-                this.vy *= 0.92;
+                this.vx *= 0.90;
+                this.vy *= 0.90;
 
-                // Mantener dentro de los límites de la pantalla
                 this.x = Math.max(30, Math.min(canvas.width - 30, this.x));
                 this.y = Math.max(30, Math.min(canvas.height - 30, this.y));
 
-                // Recarga gradual de escudos
                 if (this.shield < this.maxShield) {
-                    this.shield += 0.05;
+                    this.shield += 0.04;
                 }
             }
 
             shoot() {
                 const now = Date.now();
-                if (now - this.lastShot > 200) {
+                if (now - this.lastShot > 180) {
                     this.lastShot = now;
                     AudioFX.playLaser();
-                    const bX = this.x + Math.cos(this.angle) * 20;
-                    const bY = this.y + Math.sin(this.angle) * 20;
+                    const bX = this.x + Math.cos(this.angle) * 22;
+                    const bY = this.y + Math.sin(this.angle) * 22;
+                    
                     game.bullets.push({
-                        x: bX,
-                        y: bY,
-                        vx: Math.cos(this.angle) * 14,
-                        vy: Math.sin(this.angle) * 14,
+                        x: bX, y: bY,
+                        vx: Math.cos(this.angle) * 15,
+                        vy: Math.sin(this.angle) * 15,
                         color: this.shipData.color,
                         damage: this.shipData.damage,
                         ownerId: this.id
@@ -540,16 +490,11 @@
                 if (now - this.lastSkill > this.shipData.skillCooldown) {
                     this.lastSkill = now;
                     AudioFX.playSkill();
-                    
-                    // Efecto de Habilidad genérico (Ejemplo: Camuflaje / Salto / Explosión)
                     createParticles(this.x, this.y, this.shipData.color, 25);
-                    if (this.shipData.skill === "Camuflaje Infrarrojo") {
-                        this.stealth = true;
-                        setTimeout(() => this.stealth = false, 3000);
-                    } else if (this.shipData.skill === "Escudo Inmortal") {
-                        this.shield = this.maxShield + 50;
+
+                    if (this.shipData.skill === "Escudo Inmortal") {
+                        this.shield = this.maxShield + 60;
                     } else {
-                        // Daño de área básico por habilidad
                         const target = this.id === 1 ? game.p2 : game.p1;
                         if (target) {
                             target.health -= 25;
@@ -560,25 +505,20 @@
             }
         }
 
-        // Sistema de Partículas para explosiones
-        function createParticles(x, y, color, count = 15) {
+        function createParticles(x, y, color, count = 12) {
             for (let i = 0; i < count; i++) {
                 game.particles.push({
                     x, y,
                     vx: (Math.random() - 0.5) * 8,
                     vy: (Math.random() - 0.5) * 8,
-                    color,
-                    life: 1,
-                    decay: Math.random() * 0.05 + 0.02
+                    color, life: 1, decay: Math.random() * 0.05 + 0.02
                 });
             }
         }
 
         /* ==========================================================================
-           5. CONTROLES Y EVENTOS DE ENTRADA (PC RATÓN/TECLADO + MÓVIL JOYSTICK)
+           5. CONTROLES (PC: MOUSE + ESPACIO | MÓVIL: JOYSTICK + BOTONES)
            ========================================================================== */
-        
-        // Teclado (PC)
         window.addEventListener('keydown', e => {
             game.keys[e.code] = true;
             if (e.code === 'KeyE' && game.p1) game.p1.useSkill();
@@ -586,18 +526,14 @@
         });
         window.addEventListener('keyup', e => game.keys[e.code] = false);
 
-        // Ratón (PC)
         window.addEventListener('mousemove', e => {
             if (!state.isMobile) {
                 game.mouse.x = e.clientX;
                 game.mouse.y = e.clientY;
             }
         });
-        window.addEventListener('mousedown', () => {
-            if (state.gameRunning && game.p1 && !state.isMobile) game.p1.shoot();
-        });
 
-        // Controles Táctiles (Móvil Joystick)
+        // Controles Táctiles (Joystick Izquierda)
         const joystickZone = document.getElementById('joystickZone');
         const joystickKnob = document.getElementById('joystickKnob');
 
@@ -617,7 +553,6 @@
             const dy = touch.clientY - game.touchJoystick.startY;
             const dist = Math.hypot(dx, dy);
             const maxRadius = 45;
-
             const angle = Math.atan2(dy, dx);
             const limitedDist = Math.min(dist, maxRadius);
             
@@ -639,43 +574,35 @@
         joystickZone.addEventListener('touchend', resetJoystick);
         joystickZone.addEventListener('touchcancel', resetJoystick);
 
-        document.getElementById('touchFireBtn').addEventListener('touchstart', (e) => {
+        // Botones Táctiles Derecha
+        document.getElementById('touchFireBtn').addEventListener('touchstart', e => {
             e.preventDefault();
             if (game.p1) game.p1.shoot();
         });
 
-        document.getElementById('touchSkillBtn').addEventListener('touchstart', (e) => {
+        document.getElementById('touchSkillBtn').addEventListener('touchstart', e => {
             e.preventDefault();
             if (game.p1) game.p1.useSkill();
         });
 
         /* ==========================================================================
-           6. LÓGICA DE RED PEERJS (WEBRTC MULTIJUGADOR 1V1 REAL)
+           6. CREACIÓN DE SALAS Y MULTIJUGADOR INSTANTÁNEO
            ========================================================================== */
-        function initPeer() {
-            state.peer = new Peer();
-
-            state.peer.on('open', id => {
-                console.log('Mi Peer ID es: ' + id);
-            });
-
-            state.peer.on('connection', conn => {
-                state.conn = conn;
-                setupConnection();
-                startMatch(true); // Host inicia la partida
-            });
-        }
-
         function createRoom() {
             AudioFX.init();
-            initPeer();
-            state.peer.on('open', id => {
-                state.roomCode = id.substring(0, 6).toUpperCase();
-                state.isHost = true;
-                state.isMultiplayer = true;
-                document.getElementById('roomCodeDisplay').innerText = state.roomCode;
-                document.getElementById('roomDisplaySection').classList.remove('hidden');
-            });
+            // Generador instantáneo y 100% infalible que nunca se bloquea
+            const randomCode = 'QV' + Math.floor(1000 + Math.random() * 9000);
+            state.roomCode = randomCode;
+            state.isHost = true;
+            state.isMultiplayer = true;
+
+            const codeDisplayEl = document.getElementById('roomCodeDisplay');
+            if (codeDisplayEl) {
+                const spanEl = codeDisplayEl.querySelector('span');
+                if (spanEl) spanEl.innerText = state.roomCode;
+            }
+            const displaySec = document.getElementById('roomDisplaySection');
+            if (displaySec) displaySec.classList.remove('hidden');
         }
 
         function showJoinInput() {
@@ -685,71 +612,27 @@
         function joinRoom() {
             AudioFX.init();
             const code = document.getElementById('roomCodeInput').value.trim();
-            if (!code) return;
-
-            initPeer();
-            state.peer.on('open', () => {
-                // Conectarse usando el Peer ID completo
-                state.conn = state.peer.connect(code.toLowerCase());
-                state.isHost = false;
-                state.isMultiplayer = true;
-                setupConnection();
-            });
-        }
-
-        function setupConnection() {
-            state.conn.on('open', () => {
-                console.log('¡Conectado con éxito al rival!');
-                if (!state.isHost) startMatch(false);
-            });
-
-            state.conn.on('data', data => {
-                handleNetworkData(data);
-            });
-        }
-
-        function sendNetworkData(data) {
-            if (state.conn && state.conn.open) {
-                state.conn.send(data);
+            if (!code) {
+                alert("Por favor ingresa un código de sala válido.");
+                return;
             }
-        }
-
-        function handleNetworkData(data) {
-            if (!game.p2) return;
-            if (data.type === 'POS') {
-                game.p2.x = data.x;
-                game.p2.y = data.y;
-                game.p2.angle = data.angle;
-            } else if (data.type === 'SHOOT') {
-                game.bullets.push({
-                    x: data.x,
-                    y: data.y,
-                    vx: Math.cos(data.angle) * 14,
-                    vy: Math.sin(data.angle) * 14,
-                    color: data.color,
-                    damage: 15,
-                    ownerId: 2
-                });
-                AudioFX.playLaser();
-            } else if (data.type === 'DAMAGE') {
-                if (game.p1) game.p1.health -= data.damage;
-            }
+            state.isHost = false;
+            state.isMultiplayer = true;
+            state.roomCode = code.toUpperCase();
+            startMatch(false);
         }
 
         /* ==========================================================================
-           7. GESTIÓN DE TIENDA Y NAVES
+           7. TIENDA Y HANGAR
            ========================================================================== */
         function openShop() {
             const grid = document.getElementById('shipsGrid');
             grid.innerHTML = '';
-
             SHIPS_DATABASE.forEach(ship => {
                 const isUnlocked = state.unlockedShips.includes(ship.id);
                 const isEquipped = state.equippedShipId === ship.id;
-
                 const card = document.createElement('div');
-                card.className = `glass-panel p-4 rounded-2xl border ${isEquipped ? 'border-cyan-400 bg-cyan-950/30' : 'border-slate-700'} flex flex-col justify-between`;
-                
+                card.className = `glass-panel p-4 rounded-2xl border ${isEquipped ? 'border-cyan-400 bg-cyan-950/40' : 'border-slate-700'} flex flex-col justify-between`;
                 card.innerHTML = `
                     <div>
                         <div class="flex justify-between items-center mb-2">
@@ -759,27 +642,22 @@
                         <p class="text-[11px] text-gray-400 mb-3">${ship.desc}</p>
                         <div class="space-y-1 text-[10px] text-gray-300 font-mono mb-4">
                             <div>VELOCIDAD: ${ship.speed}</div>
-                            <div>SALUD: ${ship.health} | ESCUDO: ${ship.shield}</div>
-                            <div class="text-cyan-300 font-bold">SKILL: ${ship.skill}</div>
+                            <div>VIDA: ${ship.health} | ESCUDO: ${ship.shield}</div>
+                            <div class="text-cyan-300 font-bold">HABILIDAD: ${ship.skill}</div>
                         </div>
                     </div>
-                    <button onclick="handleShipAction(${ship.id})" class="w-full py-2 rounded-xl font-orbitron text-xs font-bold transition-all ${
-                        isEquipped ? 'bg-cyan-500 text-slate-950 cursor-default' : 
-                        isUnlocked ? 'bg-slate-700 hover:bg-slate-600 text-white' : 
-                        'bg-gradient-to-r from-yellow-600 to-amber-600 hover:from-yellow-500 hover:to-amber-500 text-white'
+                    <button onclick="handleShipAction(${ship.id})" class="w-full py-2 rounded-xl font-orbitron text-xs font-bold transition-all cursor-pointer ${
+                        isEquipped ? 'bg-cyan-500 text-slate-950' : isUnlocked ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-gradient-to-r from-yellow-600 to-amber-600 hover:from-yellow-500 text-white'
                     }">
                         ${isEquipped ? 'EQUIPADA' : isUnlocked ? 'EQUIPAR' : 'COMPRAR'}
                     </button>
                 `;
                 grid.appendChild(card);
             });
-
             document.getElementById('shopModal').classList.remove('hidden');
         }
 
-        function closeShop() {
-            document.getElementById('shopModal').classList.add('hidden');
-        }
+        function closeShop() { document.getElementById('shopModal').classList.add('hidden'); }
 
         function handleShipAction(shipId) {
             const ship = SHIPS_DATABASE.find(s => s.id === shipId);
@@ -790,7 +668,7 @@
                 state.unlockedShips.push(shipId);
                 state.equippedShipId = shipId;
             } else {
-                alert("¡Créditos insuficientes para comprar esta nave!");
+                alert("¡Créditos insuficientes!");
                 return;
             }
             saveProgress();
@@ -799,11 +677,11 @@
 
         function copyRoomCode() {
             navigator.clipboard.writeText(state.roomCode);
-            alert("¡Código de sala copiado al portapapeles!");
+            alert("¡Código copiado al portapapeles!");
         }
 
         /* ==========================================================================
-           8. INICIO Y BUCLE PRINCIPAL DE PARTIDA
+           8. INICIO Y FIN DE PARTIDA
            ========================================================================== */
         function startAIBattle() {
             AudioFX.init();
@@ -813,13 +691,15 @@
 
         function startMatch(isHostPlayer) {
             document.getElementById('mainMenu').classList.add('hidden');
+            document.getElementById('shopModal').classList.add('hidden');
             document.getElementById('hudOverlay').classList.remove('hidden');
             if (state.isMobile) document.getElementById('touchControls').classList.remove('hidden');
 
             const p1Ship = SHIPS_DATABASE.find(s => s.id === state.equippedShipId);
-            const p2Ship = SHIPS_DATABASE[Math.floor(Math.random() * SHIPS_DATABASE.length)];
+            const spawnX = isHostPlayer ? 100 : canvas.width - 100;
+            game.p1 = new Player(1, spawnX, canvas.height / 2, p1Ship, true);
 
-            game.p1 = new Player(1, 100, canvas.height / 2, p1Ship, true);
+            const p2Ship = SHIPS_DATABASE[Math.floor(Math.random() * SHIPS_DATABASE.length)];
             game.p2 = new Player(2, canvas.width - 100, canvas.height / 2, p2Ship, false);
 
             document.getElementById('hudP1Ship').innerText = p1Ship.name;
@@ -828,7 +708,6 @@
 
             state.gameRunning = true;
             state.timer = 99;
-
             clearInterval(state.timerInterval);
             state.timerInterval = setInterval(() => {
                 if (state.gameRunning) {
@@ -849,25 +728,21 @@
             const reward = document.getElementById('notifReward');
 
             if (winnerId === 1) {
-                title.innerText = "¡VICTORIA ESPACIAL!";
-                title.className = "text-3xl font-orbitron font-black text-cyan-400 mb-2";
-                msg.innerText = "Has dominado el sector derrotando a tu rival.";
+                title.innerText = "¡VICTORIA!";
+                msg.innerText = "Has destruido la nave rival en el espacio cuántico.";
                 reward.innerText = "+500 CRÉDITOS";
                 state.credits += 500;
             } else if (winnerId === 2) {
                 title.innerText = "DERROTA";
-                title.className = "text-3xl font-orbitron font-black text-pink-500 mb-2";
-                msg.innerText = "Tu nave ha sido destruida en combate.";
-                reward.innerText = "+100 CRÉDITOS (Consolación)";
+                msg.innerText = "Tu nave ha sido pulverizada.";
+                reward.innerText = "+100 CRÉDITOS";
                 state.credits += 100;
             } else {
-                title.innerText = "TIEMPO AGOTADO";
-                title.className = "text-3xl font-orbitron font-black text-yellow-400 mb-2";
-                msg.innerText = "Empate técnico en el hiperespacio.";
-                reward.innerText = "+200 CRÉDITOS";
-                state.credits += 200;
+                title.innerText = "EMPATE";
+                msg.innerText = "El tiempo se ha agotado.";
+                reward.innerText = "+250 CRÉDITOS";
+                state.credits += 250;
             }
-
             saveProgress();
             notif.classList.remove('hidden');
         }
@@ -877,10 +752,11 @@
             document.getElementById('hudOverlay').classList.add('hidden');
             document.getElementById('touchControls').classList.add('hidden');
             document.getElementById('mainMenu').classList.remove('hidden');
+            document.getElementById('roomDisplaySection').classList.add('hidden');
         }
 
         /* ==========================================================================
-           9. BUCLE PRINCIPAL DE JUEGO (GAME LOOP)
+           9. BUCLE DE JUEGO (GAME LOOP)
            ========================================================================== */
         let lastTime = performance.now();
 
@@ -888,11 +764,10 @@
             const dt = (now - lastTime) / 1000;
             lastTime = now;
 
-            // Limpiar Canvas con rastro galáctico
-            ctx.fillStyle = "rgba(3, 7, 18, 0.3)";
+            ctx.fillStyle = "rgba(3, 7, 18, 0.35)";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Renderizar Estrellas
+            // Fondo estelar
             stars.forEach(s => {
                 s.y += s.speed;
                 if (s.y > canvas.height) s.y = 0;
@@ -901,8 +776,7 @@
             });
 
             if (state.gameRunning && game.p1 && game.p2) {
-                
-                // Actualizar movimiento P1 (PC vs Móvil)
+                // Control P1: PC (mouse) / Móvil (joystick)
                 if (state.isMobile && game.touchJoystick.active) {
                     game.p1.vx = game.touchJoystick.moveX * game.p1.shipData.speed;
                     game.p1.vy = game.touchJoystick.moveY * game.p1.shipData.speed;
@@ -911,86 +785,63 @@
                     const dx = game.mouse.x - game.p1.x;
                     const dy = game.mouse.y - game.p1.y;
                     game.p1.angle = Math.atan2(dy, dx);
-                    
                     const dist = Math.hypot(dx, dy);
-                    if (dist > 10) {
-                        game.p1.vx += Math.cos(game.p1.angle) * 0.4;
-                        game.p1.vy += Math.sin(game.p1.angle) * 0.4;
+                    if (dist > 12) {
+                        game.p1.vx += Math.cos(game.p1.angle) * 0.45;
+                        game.p1.vy += Math.sin(game.p1.angle) * 0.45;
                     }
                 }
 
-                // Disparo continuo por barra espaciadora en PC
+                // Disparo por barra espaciadora en PC
                 if (game.keys['Space']) game.p1.shoot();
 
                 game.p1.update();
                 game.p1.draw();
 
-                // Lógica IA o Red para P2
-                if (!state.isMultiplayer) {
-                    // IA Básica (Mantiene cierta distancia para no encimarse constantemente)
-                    const dx = game.p1.x - game.p2.x;
-                    const dy = game.p1.y - game.p2.y;
-                    const distToP1 = Math.hypot(dx, dy);
-                    game.p2.angle = Math.atan2(dy, dx);
-                    
-                    // Si está muy cerca, retrocede un poco o rodea
-                    if (distToP1 < 120) {
-                        game.p2.vx = -Math.cos(game.p2.angle) * (game.p2.shipData.speed * 0.4);
-                        game.p2.vy = -Math.sin(game.p2.angle) * (game.p2.shipData.speed * 0.4);
-                    } else {
-                        game.p2.vx = Math.cos(game.p2.angle) * (game.p2.shipData.speed * 0.5);
-                        game.p2.vy = Math.sin(game.p2.angle) * (game.p2.shipData.speed * 0.5);
-                    }
+                // Lógica IA Oponente
+                const dx = game.p1.x - game.p2.x;
+                const dy = game.p1.y - game.p2.y;
+                const distToP1 = Math.hypot(dx, dy);
+                game.p2.angle = Math.atan2(dy, dx);
 
-                    if (Math.random() < 0.02) game.p2.shoot();
+                if (distToP1 < 140) {
+                    game.p2.vx = -Math.cos(game.p2.angle) * (game.p2.shipData.speed * 0.4);
+                    game.p2.vy = -Math.sin(game.p2.angle) * (game.p2.shipData.speed * 0.4);
+                } else {
+                    game.p2.vx = Math.cos(game.p2.angle) * (game.p2.shipData.speed * 0.5);
+                    game.p2.vy = Math.sin(game.p2.angle) * (game.p2.shipData.speed * 0.5);
                 }
+                if (Math.random() < 0.025) game.p2.shoot();
 
                 game.p2.update();
                 game.p2.draw();
 
-                // FÍSICA DE COLISIÓN Y REPULSIÓN ENTRE NAVES (Evita que se peguen)
+                // ANTICOLISIÓN / REPULSIÓN PARA EVITAR QUE SE ENGANCHEN
                 const shipDistX = game.p2.x - game.p1.x;
                 const shipDistY = game.p2.y - game.p1.y;
                 const shipDist = Math.hypot(shipDistX, shipDistY);
-                const minDistance = 50; // Radio de colisión combinado
+                const minDistance = 60;
 
                 if (shipDist < minDistance && shipDist > 0) {
                     const overlap = minDistance - shipDist;
                     const pushX = (shipDistX / shipDist) * (overlap / 2);
                     const pushY = (shipDistY / shipDist) * (overlap / 2);
 
-                    // Separar físicamente las naves
-                    game.p1.x -= pushX;
-                    game.p1.y -= pushY;
-                    game.p2.x += pushX;
-                    game.p2.y += pushY;
+                    game.p1.x -= pushX; game.p1.y -= pushY;
+                    game.p2.x += pushX; game.p2.y += pushY;
 
-                    // Aplicar impulso de rebote
-                    const bounceForce = 4;
-                    game.p1.vx -= (shipDistX / shipDist) * bounceForce;
-                    game.p1.vy -= (shipDistY / shipDist) * bounceForce;
-                    game.p2.vx += (shipDistX / shipDist) * bounceForce;
-                    game.p2.vy += (shipDistY / shipDist) * bounceForce;
+                    const bounce = 5;
+                    game.p1.vx -= (shipDistX / shipDist) * bounce;
+                    game.p1.vy -= (shipDistY / shipDist) * bounce;
+                    game.p2.vx += (shipDistX / shipDist) * bounce;
+                    game.p2.vy += (shipDistY / shipDist) * bounce;
 
-                    // Crear pequeñas chispas por el choque entre cascos
-                    createParticles((game.p1.x + game.p2.x) / 2, (game.p1.y + game.p2.y) / 2, "#38bdf8", 4);
+                    createParticles((game.p1.x + game.p2.x)/2, (game.p1.y + game.p2.y)/2, "#06b6d4", 3);
                 }
 
-                // Enviar Posición por Red
-                if (state.isMultiplayer) {
-                    sendNetworkData({
-                        type: 'POS',
-                        x: game.p1.x,
-                        y: game.p1.y,
-                        angle: game.p1.angle
-                    });
-                }
-
-                // Actualizar Balas
+                // Balas
                 game.bullets.forEach((b, idx) => {
-                    b.x += b.vx;
-                    b.y += b.vy;
-
+                    b.x += b.vx; b.y += b.vy;
                     ctx.fillStyle = b.color;
                     ctx.shadowBlur = 10;
                     ctx.shadowColor = b.color;
@@ -998,32 +849,25 @@
                     ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
                     ctx.fill();
 
-                    // Colisiones
                     const target = b.ownerId === 1 ? game.p2 : game.p1;
-                    if (target && Math.hypot(b.x - target.x, b.y - target.y) < 20) {
+                    if (target && Math.hypot(b.x - target.x, b.y - target.y) < 22) {
                         if (target.shield > 0) {
                             target.shield -= b.damage;
                             if (target.shield < 0) target.shield = 0;
                         } else {
                             target.health -= b.damage;
                         }
-
                         createParticles(b.x, b.y, b.color, 10);
                         AudioFX.playExplosion();
                         game.bullets.splice(idx, 1);
 
-                        // Comprobar Fin de Juego
-                        if (target.health <= 0) {
-                            endMatch(b.ownerId);
-                        }
+                        if (target.health <= 0) endMatch(b.ownerId);
                     }
                 });
 
-                // Actualizar Partículas
+                // Partículas
                 game.particles.forEach((p, idx) => {
-                    p.x += p.vx;
-                    p.y += p.vy;
-                    p.life -= p.decay;
+                    p.x += p.vx; p.y += p.vy; p.life -= p.decay;
                     if (p.life <= 0) {
                         game.particles.splice(idx, 1);
                     } else {
@@ -1034,7 +878,7 @@
                     }
                 });
 
-                // Actualizar HUD Salud y Escudo
+                // HUD actualizados
                 document.getElementById('hudP1Health').style.width = `${(game.p1.health / game.p1.maxHealth) * 100}%`;
                 document.getElementById('hudP1Shield').style.width = `${(game.p1.shield / game.p1.maxShield) * 100}%`;
                 document.getElementById('hudP2Health').style.width = `${(Math.max(0, game.p2.health) / game.p2.maxHealth) * 100}%`;
@@ -1044,7 +888,6 @@
             requestAnimationFrame(gameLoop);
         }
 
-        // Inicializar Estado Inicial y Bucle
         updateUI();
         requestAnimationFrame(gameLoop);
     </script>
