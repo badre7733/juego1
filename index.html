@@ -654,13 +654,18 @@
         function createRoom() {
             AudioFX.init();
             initPeer(id => {
-                const peerId = id || (state.peer ? state.peer.id : 'QV-1234');
-                state.roomCode = peerId.substring(0, 6).toUpperCase();
+                const peerId = id || (state.peer && state.peer.id ? state.peer.id : 'QV-1234');
+                state.roomCode = (peerId.length > 6 ? peerId.substring(0, 6) : peerId).toUpperCase();
                 state.isHost = true;
                 state.isMultiplayer = true;
                 
-                document.getElementById('roomCodeText').innerText = state.roomCode;
-                document.getElementById('roomDisplaySection').classList.remove('hidden');
+                const codeDisplayEl = document.getElementById('roomCodeDisplay');
+                if (codeDisplayEl) {
+                    const spanEl = codeDisplayEl.querySelector('span');
+                    if (spanEl) spanEl.innerText = state.roomCode;
+                }
+                const displaySec = document.getElementById('roomDisplaySection');
+                if (displaySec) displaySec.classList.remove('hidden');
             });
         }
 
@@ -670,30 +675,56 @@
 
         function joinRoom() {
             AudioFX.init();
-            const code = document.getElementById('roomCodeInput').value.trim();
-            if (!code) return;
+            const code = document.getElementById('roomCodeInput').value.trim().toUpperCase();
+            if (!code) {
+                alert("Por favor, introduce un código de sala válido.");
+                return;
+            }
+            
             initPeer(() => {
-                if (state.peer && typeof state.peer.connect === 'function') {
-                    state.conn = state.peer.connect(code);
+                if (!state.peer) {
+                    alert("Error al inicializar la red P2P.");
+                    return;
                 }
+                
+                // Asegurar formato correcto de conexión
+                const targetId = code.startsWith('QV-') ? code : 'QV-' + code;
+                console.log("Conectando a la sala:", targetId);
+                
+                state.conn = state.peer.connect(targetId);
                 state.isHost = false;
                 state.isMultiplayer = true;
-                setupConnection();
+                
+                if (state.conn) {
+                    setupConnection();
+                    // Feedback visual temporal
+                    document.getElementById('roomCodeInput').value = "CONECTANDO...";
+                } else {
+                    alert("No se pudo establecer la conexión con la sala.");
+                }
             });
         }
 
         function setupConnection() {
-            if (state.conn && typeof state.conn.on === 'function') {
-                state.conn.on('open', () => {
-                    sendNetworkData({ type: 'INIT_SHIP', shipId: state.equippedShipId });
-                    if (state.isHost) startMatch(true);
-                });
-                state.conn.on('data', data => handleNetworkData(data));
-                state.conn.on('close', () => { alert("El rival se ha desconectado."); endMatch(1); });
-            } else {
-                // Modo simulado local si la conexión P2P está offline
-                startMatch(state.isHost);
-            }
+            if (!state.conn) return;
+            
+            state.conn.on('open', () => {
+                console.log("Conexión P2P establecida con éxito.");
+                sendNetworkData({ type: 'INIT_SHIP', shipId: state.equippedShipId });
+                if (state.isHost) startMatch(true);
+            });
+            
+            state.conn.on('data', data => handleNetworkData(data));
+            
+            state.conn.on('error', err => {
+                console.error("Error en conexión P2P:", err);
+                alert("Error de conexión con el rival.");
+            });
+
+            state.conn.on('close', () => { 
+                alert("El rival se ha desconectado."); 
+                endMatch(1); 
+            });
         }
 
         function sendNetworkData(data) {
