@@ -28,7 +28,8 @@
                             danger: '#ff0055',
                             gold: '#ffd166',
                             crimson: '#a81c1c',
-                            bio: '#cf38ff'
+                            bio: '#cf38ff',
+                            legendary: '#ffaa00'
                         }
                     },
                     fontFamily: {
@@ -38,7 +39,8 @@
                     boxShadow: {
                         cyanGlow: '0 0 20px rgba(0, 240, 255, 0.4)',
                         cyanGlowStrong: '0 0 35px rgba(0, 240, 255, 0.8)',
-                        dangerGlow: '0 0 20px rgba(255, 0, 85, 0.5)'
+                        dangerGlow: '0 0 20px rgba(255, 0, 85, 0.5)',
+                        goldGlow: '0 0 25px rgba(255, 209, 102, 0.6)'
                     }
                 }
             }
@@ -58,6 +60,12 @@
             background: rgba(40, 10, 20, 0.82);
             backdrop-filter: blur(14px);
             border: 1px solid rgba(255, 0, 85, 0.35);
+        }
+        .glass-panel-gold {
+            background: rgba(35, 25, 5, 0.85);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 209, 102, 0.4);
+            box-shadow: inset 0 0 20px rgba(255, 209, 102, 0.1), 0 8px 32px 0 rgba(0, 0, 0, 0.7);
         }
 
         /* Touch Control Styling */
@@ -120,11 +128,15 @@
                     <button onclick="switchView('multiplayer')" class="w-full py-3 px-4 rounded-xl bg-slate-900 border border-void-cyan/50 text-void-cyan font-bold text-xs sm:text-sm hover:bg-void-cyan/10 transition flex items-center justify-center gap-2">
                         <i class="fa-solid fa-network-wired"></i> MULTIJUGADOR P2P
                     </button>
+                    <!-- EXTRA MODE BUTTON: MULTIPLAYER SURVIVAL BET arena -->
+                    <button onclick="switchView('survival')" class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-rose-600 text-slate-950 font-black text-xs sm:text-sm hover:brightness-125 transition shadow-goldGlow flex items-center justify-center gap-2 sm:col-span-2">
+                        <i class="fa-solid fa-trophy text-base sm:text-lg"></i> MODO APUESTAS: SUPERVIVENCIA (HASTA 10 JUGADORES)
+                    </button>
                     <button onclick="switchView('hangar')" class="w-full py-3 px-4 rounded-xl bg-slate-900/80 border border-slate-700 hover:border-void-cyan text-slate-200 font-bold text-xs sm:text-sm hover:bg-slate-800 transition flex items-center justify-center gap-2">
                         <i class="fa-solid fa-shuttle-space"></i> HANGAR Y MEJORAS
                     </button>
                     <button onclick="switchView('shop')" class="w-full py-3 px-4 rounded-xl bg-slate-900/80 border border-slate-700 hover:border-amber-400 text-slate-200 font-bold text-xs sm:text-sm hover:bg-slate-800 transition flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-cart-shopping text-amber-400"></i> ASTILLERO (28 NAVES)
+                        <i class="fa-solid fa-cart-shopping text-amber-400"></i> ASTILLERO (48 NAVES)
                     </button>
                     <button onclick="switchView('stats')" class="w-full py-3 px-4 rounded-xl bg-slate-900/80 border border-slate-700 hover:border-slate-500 text-slate-300 font-semibold text-xs hover:bg-slate-800 transition flex items-center justify-center gap-2 sm:col-span-2">
                         <i class="fa-solid fa-chart-line"></i> ESTADÍSTICAS DE COMBATE
@@ -149,6 +161,67 @@
                     <div class="flex justify-between text-slate-400"><span>Potencia Laser:</span><span id="activeShipDPS" class="text-amber-400 font-bold">35 DPS</span></div>
                     <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden"><div id="barDPS" class="h-full bg-amber-400 w-2/3"></div></div>
                 </div>
+            </div>
+        </div>
+
+        <!-- ================= EXTRA MODE: MULTIPLAYER SURVIVAL BETS ================= -->
+        <div id="view-survival" class="ui-screen max-w-3xl w-full hidden glass-panel-gold p-5 sm:p-6 rounded-2xl space-y-5">
+            <div class="flex justify-between items-center border-b border-amber-500/30 pb-3">
+                <div>
+                    <h2 class="text-xl sm:text-2xl font-black text-amber-400 flex items-center gap-2"><i class="fa-solid fa-skull-crossbones text-rose-500"></i> SUPERVIVENCIA MULTIJUGADOR (10 JUGADORES)</h2>
+                    <p class="text-xs text-slate-300">Bote acumulado. Cada piloto apuesta sus monedas. El último piloto con vida se lleva el bote total.</p>
+                </div>
+                <button onclick="switchView('menu')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300">VOLVER</button>
+            </div>
+
+            <!-- BET SELECTION SECTION -->
+            <div class="bg-slate-950/80 p-4 rounded-xl border border-amber-500/40 space-y-4">
+                <div class="flex flex-col sm:flex-row justify-between items-center gap-3">
+                    <label for="survivalBetInput" class="text-xs font-bold text-amber-300 uppercase font-mono">Apuesta individual por piloto (CR):</label>
+                    <input type="number" id="survivalBetInput" min="1000" max="1000000" step="1000" value="50000" onchange="updateSurvivalPotDisplay()" class="bg-slate-900 border border-amber-500/50 rounded-lg px-3 py-2 text-amber-400 font-mono font-bold text-sm w-full sm:w-48 outline-none text-center">
+                </div>
+                
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs font-mono">
+                    <button onclick="setBetPreset(1000)" class="py-1.5 bg-slate-900 border border-slate-700 hover:border-amber-400 rounded text-amber-300">1,000 CR</button>
+                    <button onclick="setBetPreset(50000)" class="py-1.5 bg-slate-900 border border-slate-700 hover:border-amber-400 rounded text-amber-300">50,000 CR</button>
+                    <button onclick="setBetPreset(250000)" class="py-1.5 bg-slate-900 border border-slate-700 hover:border-amber-400 rounded text-amber-300">250,000 CR</button>
+                    <button onclick="setBetPreset(1000000)" class="py-1.5 bg-slate-900 border border-slate-700 hover:border-amber-400 rounded text-amber-300">1,000,000 CR</button>
+                </div>
+
+                <div class="p-3 bg-slate-900 rounded-lg border border-amber-500/30 flex justify-between items-center">
+                    <span class="text-xs text-slate-300 font-bold uppercase">BOTE TOTAL DE LA SALA (10 PILOTOS):</span>
+                    <span id="potTotalDisplay" class="text-xl font-extrabold text-amber-400 font-mono">500,000 CR</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- HOST SURVIVAL -->
+                <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 space-y-3">
+                    <h3 class="text-sm font-bold text-amber-400"><i class="fa-solid fa-crown mr-1"></i> CREAR SALA DE SUPERVIVENCIA</h3>
+                    <p class="text-[11px] text-slate-400">Aloja una partida de 10 participantes con el bote fijado.</p>
+                    <button onclick="createSurvivalRoom()" class="w-full py-2.5 rounded-lg bg-gradient-to-r from-amber-400 to-amber-600 text-slate-950 font-black text-xs hover:brightness-110 shadow-goldGlow">
+                        CREAR SALA & PAGAR APUESTA
+                    </button>
+                    <div id="survivalHostDisplay" class="hidden bg-slate-950 border border-amber-400/40 rounded-lg p-3 text-center space-y-1">
+                        <div class="text-[10px] text-slate-400">CÓDIGO DE SUPERVIVENCIA:</div>
+                        <div id="survivalRoomCode" class="text-2xl font-extrabold text-amber-400 font-mono tracking-wider">------</div>
+                        <div class="text-[10px] text-emerald-400 animate-pulse">Esperando gladiadores (Lobby activado)...</div>
+                    </div>
+                </div>
+
+                <!-- JOIN SURVIVAL -->
+                <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 space-y-3">
+                    <h3 class="text-sm font-bold text-rose-400"><i class="fa-solid fa-crosshairs mr-1"></i> UNIRSE A SUPERVIVENCIA</h3>
+                    <p class="text-[11px] text-slate-400">Introduce el código del torneo de supervivencia.</p>
+                    <input type="text" id="joinSurvivalCodeInput" placeholder="EJ: SURV-4921" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 font-mono tracking-wider uppercase focus:border-rose-400 outline-none">
+                    <button onclick="joinSurvivalRoom()" class="w-full py-2.5 rounded-lg bg-rose-500 text-white font-black text-xs hover:brightness-110">
+                        PAGAR APUESTA Y UNIRSE
+                    </button>
+                </div>
+            </div>
+
+            <div id="survivalStatusLog" class="bg-slate-950 p-3 rounded-xl border border-slate-800 font-mono text-xs text-amber-400/80 min-h-12 flex items-center justify-center text-center">
+                Ajusta el monto de las apuestas y crea o únete a la sala de supervivencia.
             </div>
         </div>
 
@@ -240,18 +313,18 @@
             </div>
         </div>
 
-        <!-- ================= SHIP STORE (28 ARCHETYPES) ================= -->
+        <!-- ================= SHIP STORE (48 ARCHETYPES) ================= -->
         <div id="view-shop" class="ui-screen max-w-5xl w-full hidden glass-panel p-5 sm:p-6 rounded-2xl space-y-5">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
                 <div>
-                    <h2 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-2"><i class="fa-solid fa-cart-shopping text-amber-400"></i> ASTILLERO (CATÁLOGO DE 28 NAVES)</h2>
-                    <p class="text-xs text-slate-400">Explora la flota completa con los 4 modelos principales de combate y sus 28 variantes.</p>
+                    <h2 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-2"><i class="fa-solid fa-cart-shopping text-amber-400"></i> ASTILLERO (CATÁLOGO DE 48 NAVES)</h2>
+                    <p class="text-xs text-slate-400">Explora la flota completa con 28 modelos estándar y 20 modelos Titan de tecnología mística y precios millonarios.</p>
                 </div>
                 <button onclick="switchView('menu')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300">VOLVER</button>
             </div>
 
             <div id="shopGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-h-[60vh] overflow-y-auto pr-1">
-                <!-- 28 Ships Generated via JS -->
+                <!-- 48 Ships Generated via JS -->
             </div>
         </div>
 
@@ -309,7 +382,7 @@
             <div class="glass-panel p-3 sm:p-4 rounded-xl text-right font-mono space-y-1">
                 <div class="text-[10px] sm:text-xs text-slate-400">SECTOR DE COMBATE</div>
                 <div id="hudRoomCode" class="text-sm sm:text-lg font-bold text-void-cyan">P2P-SOLO</div>
-                <div class="text-xs text-amber-400"><i class="fa-solid fa-crosshairs mr-1"></i> BAJAS: <span id="hudScore">0</span></div>
+                <div class="text-xs text-amber-400"><i class="fa-solid fa-crosshairs mr-1"></i> VIVOS EN SALA: <span id="hudScore">0</span></div>
             </div>
         </div>
 
@@ -339,9 +412,10 @@
 
     <!-- MAIN ENGINE & P2P CONTROLLER -->
     <script>
-        // ================= 28 SHIPS DATABASE =================
-        const SHIP_MODELS = ['alien_bio', 'crimson_blade', 'stealth_interceptor', 'triwing_heavy'];
+        // ================= 48 SHIPS DATABASE =================
+        const SHIP_MODELS = ['alien_bio', 'crimson_blade', 'stealth_interceptor', 'triwing_heavy', 'quantum_titan', 'plasma_dreadnought'];
         
+        // standard 28 ships
         const SHIPS_DATABASE = Array.from({ length: 28 }, (_, i) => {
             const modelType = SHIP_MODELS[i % 4];
             const names = [
@@ -360,18 +434,47 @@
                 price: i === 0 ? 0 : 1500 * i,
                 shield: 100 + (i * 15),
                 dps: 20 + (i * 5),
-                speed: 5 + (i * 0.15)
+                speed: 5 + (i * 0.15),
+                tier: 'standard'
             };
         });
 
+        // 20 EXTRA HIGH-COST SOPHISTICATED TITAN SHIPS (Total 48)
+        const TITAN_NAMES = [
+            "Chronos Celestial Dreadnought", "Aetherius Singularity Titan", "Aureus Paragon Destroyer", "Void-God Supernova",
+            "Nebula Empress Harvester", "Dark Matter Leviathan", "Vortex Annihilator MK-X", "Astral Valkyrie Overlord",
+            "Galactic Oblivion Blade", "Cosmic Singularity Dread", "Quantum Eclipse Apex", "Hyper-Dimension Titan",
+            "Pulsar Sovereign Destroyer", "Starlight Chimera Prime", "Infinitum Void Behemoth", "Event-Horizon Conqueror",
+            "Super-Cluster Archon", "Tachyon Doom Bringer", "Omni-Sovereign Reaper", "Universal Void God Engine"
+        ];
+
+        for (let i = 0; i < 20; i++) {
+            const shipIdIndex = 29 + i;
+            const extraPrice = 150000 + (i * 450000); // Rango de precio extremo: 150k a 8.7M de monedas
+            SHIPS_DATABASE.push({
+                id: `ship_${shipIdIndex}`,
+                name: TITAN_NAMES[i],
+                model: i % 2 === 0 ? 'quantum_titan' : 'plasma_dreadnought',
+                price: extraPrice,
+                shield: 600 + (i * 120),
+                dps: 180 + (i * 35),
+                speed: 8 + (i * 0.25),
+                tier: 'titan'
+            });
+        }
+
         // ================= GAME STATE & PERSISTENCE =================
         let playerData = {
-            credits: 15000,
+            credits: 50000,
             ownedShips: ['ship_1'],
             activeShipId: 'ship_1',
             upgrades: { shield: 1, laser: 1, speed: 1 },
             stats: { kills: 0, deaths: 0, shotsFired: 0, shotsHit: 0, creditsEarned: 0 }
         };
+
+        let currentBetAmount = 50000;
+        let isSurvivalMode = false;
+        let survivalPot = 0;
 
         function loadPlayerData() {
             const saved = localStorage.getItem('qv_p2p_save');
@@ -388,6 +491,18 @@
 
         function updateCreditDisplays() {
             document.getElementById('globalCredits').innerText = playerData.credits.toLocaleString();
+        }
+
+        function setBetPreset(amount) {
+            document.getElementById('survivalBetInput').value = amount;
+            updateSurvivalPotDisplay();
+        }
+
+        function updateSurvivalPotDisplay() {
+            const val = parseInt(document.getElementById('survivalBetInput').value) || 1000;
+            currentBetAmount = Math.max(1000, Math.min(1000000, val));
+            document.getElementById('survivalBetInput').value = currentBetAmount;
+            document.getElementById('potTotalDisplay').innerText = (currentBetAmount * 10).toLocaleString() + " CR";
         }
 
         // ================= CANVAS ENGINE & GRAPHICS =================
@@ -424,6 +539,7 @@
             populateShopGrid();
             populateOwnedShipsList();
             setupTouchEvents();
+            updateSurvivalPotDisplay();
 
             window.addEventListener('keydown', e => { keys[e.code] = true; });
             window.addEventListener('keyup', e => { keys[e.code] = false; });
@@ -500,6 +616,7 @@
 
         // ================= P2P PEERJS NETWORKING =================
         function createP2PRoom() {
+            isSurvivalMode = false;
             const code = 'QV-' + Math.floor(1000 + Math.random() * 9000);
             document.getElementById('p2pStatusLog').innerText = "Iniciando nodo PeerJS Anfitrión...";
 
@@ -525,6 +642,7 @@
         }
 
         function joinP2PRoom() {
+            isSurvivalMode = false;
             const code = document.getElementById('joinRoomCodeInput').value.trim().toUpperCase();
             if (!code) return alert("Introduce un código de sala válido.");
 
@@ -541,21 +659,74 @@
             });
         }
 
+        // ================= MULTIPLAYER SURVIVAL BET MODE (10 PILOTS) =================
+        function createSurvivalRoom() {
+            if (playerData.credits < currentBetAmount) {
+                return alert(`No tienes suficientes créditos para apostar ${currentBetAmount.toLocaleString()} CR.`);
+            }
+
+            playerData.credits -= currentBetAmount;
+            savePlayerData();
+
+            isSurvivalMode = true;
+            survivalPot = currentBetAmount * 10;
+            const code = 'SURV-' + Math.floor(1000 + Math.random() * 9000);
+            document.getElementById('survivalStatusLog').innerText = `Bote Pagado: ${currentBetAmount.toLocaleString()} CR. Creando sala de supervivencia de 10 personas...`;
+
+            peer = new Peer(code);
+            peer.on('open', id => {
+                isHost = true;
+                p2pRoomCode = id;
+                document.getElementById('survivalHostDisplay').classList.remove('hidden');
+                document.getElementById('survivalRoomCode').innerText = id;
+                document.getElementById('survivalStatusLog').innerText = `Sala de supervivencia lista. Código: ${id}. Entrando a la arena multijugador...`;
+                setTimeout(() => { startBattle(id); }, 1500);
+            });
+
+            peer.on('error', err => {
+                document.getElementById('survivalStatusLog').innerText = "Error al iniciar supervivencia: " + err.message;
+            });
+        }
+
+        function joinSurvivalRoom() {
+            const code = document.getElementById('joinSurvivalCodeInput').value.trim().toUpperCase();
+            if (!code) return alert("Introduce un código de supervivencia válido.");
+            
+            if (playerData.credits < currentBetAmount) {
+                return alert(`Necesitas al menos ${currentBetAmount.toLocaleString()} CR para entrar a esta partida de apuesta.`);
+            }
+
+            playerData.credits -= currentBetAmount;
+            savePlayerData();
+
+            isSurvivalMode = true;
+            survivalPot = currentBetAmount * 10;
+            document.getElementById('survivalStatusLog').innerText = `Apuesta descontada. Conectando al lobby de supervivencia...`;
+            peer = new Peer();
+
+            peer.on('open', () => {
+                p2pConn = peer.connect(code);
+                setupP2PDataHandlers();
+                setTimeout(() => { startBattle(code); }, 1000);
+            });
+
+            peer.on('error', err => {
+                document.getElementById('survivalStatusLog').innerText = "Error al unirse: " + err.message;
+            });
+        }
+
         function setupP2PDataHandlers() {
             p2pConn.on('open', () => {
                 document.getElementById('p2pStatusLog').innerText = "¡Conexión establecida! Cargando mapa...";
-                if (!isHost) setTimeout(() => { startP2PBattle(); }, 1000);
+                if (!isHost && !isSurvivalMode) setTimeout(() => { startP2PBattle(); }, 1000);
             });
 
             p2pConn.on('data', data => {
                 if (data.type === 'PLAYER_SYNC') {
                     remotePlayer = data.player;
                 } else if (data.type === 'FIRE_BULLET') {
-                    // En el cliente receptor, el proyectil pertenece al jugador remoto.
-                    // Se copia para no modificar el objeto enviado por PeerJS.
                     projectiles.push({ ...data.bullet, owner: 'remote' });
                 } else if (data.type === 'PLAYER_HIT') {
-                    // El jugador remoto ha confirmado un impacto contra nuestra nave.
                     if (localPlayer && localPlayer.hull > 0) {
                         applyPlayerDamage(data.damage);
                     }
@@ -589,10 +760,15 @@
                 localPlayer.hull = 0;
                 playerData.stats.deaths++;
                 createExplosion(localPlayer.x, localPlayer.y, '#ff0055');
+
+                if (isSurvivalMode) {
+                    alert("¡HAS SIDO ELIMINADO DE LA SUPERVIVENCIA MULTIJUGADOR! Has perdido tu apuesta.");
+                }
             }
         }
 
         function startSinglePlayer() {
+            isSurvivalMode = false;
             isHost = true;
             p2pRoomCode = "SOLO";
             startBattle("SOLO");
@@ -627,7 +803,12 @@
             particles = [];
             aiEnemies = [];
 
-            if (isHost && roomCode === "SOLO") {
+            if (isSurvivalMode) {
+                // Genera los otros 9 contendientes (Bots de combate de supervivencia multi-sala)
+                for (let i = 0; i < 9; i++) {
+                    spawnAiEnemy(true);
+                }
+            } else if (isHost && roomCode === "SOLO") {
                 spawnAiEnemy();
                 spawnAiEnemy();
             }
@@ -636,8 +817,7 @@
             requestAnimationFrame(gameLoop);
         }
 
-        function spawnAiEnemy() {
-            // Evita que los bots aparezcan justo encima del jugador.
+        function spawnAiEnemy(isSurvival = false) {
             let spawnX = Math.random() * canvas.width;
             let spawnY = Math.random() * canvas.height;
             if (localPlayer && Math.hypot(spawnX - localPlayer.x, spawnY - localPlayer.y) < 220) {
@@ -646,15 +826,17 @@
                 spawnY = localPlayer.y + Math.sin(spawnAngle) * 260;
             }
 
+            const modelRandom = isSurvival ? SHIP_MODELS[Math.floor(Math.random() * SHIP_MODELS.length)] : 'stealth_interceptor';
+
             aiEnemies.push({
                 id: 'ai_' + Math.random(),
                 x: Math.max(30, Math.min(canvas.width - 30, spawnX)),
                 y: Math.max(30, Math.min(canvas.height - 30, spawnY)),
                 vx: 0, vy: 0,
                 angle: Math.random() * Math.PI * 2,
-                model: 'stealth_interceptor',
-                shield: 80,
-                hull: 80,
+                model: modelRandom,
+                shield: isSurvival ? 250 : 80,
+                hull: isSurvival ? 150 : 80,
                 lastShot: Date.now() + Math.random() * 700,
                 strafeDirection: Math.random() < 0.5 ? -1 : 1,
                 decisionTime: 0
@@ -741,46 +923,30 @@
                 drawShipModel(remotePlayer);
             }
 
-            // AI Enemies Update: persecución, distancia táctica, flanqueo y disparos.
+            // AI Enemies Update
             aiEnemies.forEach(ai => {
-                if (localPlayer && localPlayer.hull > 0 && p2pRoomCode === 'SOLO') {
+                if (localPlayer && localPlayer.hull > 0) {
                     const dx = localPlayer.x - ai.x;
                     const dy = localPlayer.y - ai.y;
                     const distance = Math.max(1, Math.hypot(dx, dy));
                     const targetAngle = Math.atan2(dy, dx);
 
-                    // Gira hacia el jugador suavemente, corrigiendo el salto angular en ±PI.
                     let angleDiff = targetAngle - ai.angle;
                     while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
                     while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
                     ai.angle += Math.max(-0.075, Math.min(0.075, angleDiff));
 
-                    // Cambia de lado periódicamente para no perseguir en línea recta.
                     if (Date.now() > (ai.decisionTime || 0)) {
                         ai.strafeDirection = Math.random() < 0.5 ? -1 : 1;
                         ai.decisionTime = Date.now() + 1100 + Math.random() * 900;
                     }
 
-                    // Mantiene una distancia de combate: se acerca si está lejos y se abre si está cerca.
                     const desiredDistance = 260;
                     const forwardForce = distance > desiredDistance + 55 ? 0.19 :
                                          distance < desiredDistance - 65 ? -0.13 : 0.015;
                     const strafeForce = distance < 520 ? ai.strafeDirection * 0.13 : 0.04;
                     ai.vx += Math.cos(ai.angle) * forwardForce - Math.sin(ai.angle) * strafeForce;
                     ai.vy += Math.sin(ai.angle) * forwardForce + Math.cos(ai.angle) * strafeForce;
-
-                    // Intenta esquivar proyectiles del jugador cercanos.
-                    for (let j = 0; j < projectiles.length; j++) {
-                        const shot = projectiles[j];
-                        if (shot.owner !== 'local') continue;
-                        const sx = ai.x - shot.x;
-                        const sy = ai.y - shot.y;
-                        if (sx * sx + sy * sy < 105 * 105) {
-                            const evade = Math.atan2(sy, sx);
-                            ai.vx += Math.cos(evade) * 0.22;
-                            ai.vy += Math.sin(evade) * 0.22;
-                        }
-                    }
 
                     ai.vx *= 0.975;
                     ai.vy *= 0.975;
@@ -793,7 +959,6 @@
                     ai.x += ai.vx;
                     ai.y += ai.vy;
 
-                    // Disparo con anticipación: calcula dónde estará el jugador al llegar el láser.
                     if (distance < 650 && Date.now() - ai.lastShot > 900 + Math.random() * 250) {
                         const bulletSpeed = 7.5;
                         const travelTime = distance / bulletSpeed;
@@ -814,7 +979,6 @@
                         ai.lastShot = Date.now();
                     }
 
-                    // Teletransporte de borde coherente con el movimiento del resto del juego.
                     if (ai.x < 0) ai.x = canvas.width;
                     if (ai.x > canvas.width) ai.x = 0;
                     if (ai.y < 0) ai.y = canvas.height;
@@ -835,8 +999,8 @@
                 ctx.lineTo(p.x - p.vx * 1.5, p.y - p.vy * 1.5);
                 ctx.stroke();
 
-                // Hit Detection vs AI (solo mode).
-                if (p.owner === 'local' && p2pRoomCode === 'SOLO') {
+                // Hit Detection vs AI.
+                if (p.owner === 'local') {
                     for (let aIdx = aiEnemies.length - 1; aIdx >= 0; aIdx--) {
                         const ai = aiEnemies[aIdx];
                         if (Math.hypot(p.x - ai.x, p.y - ai.y) < 22) {
@@ -850,23 +1014,33 @@
                                 localPlayer.score++;
                                 playerData.stats.kills++;
                                 playerData.credits += 500;
-                                spawnAiEnemy();
+                                
+                                if (!isSurvivalMode) {
+                                    spawnAiEnemy();
+                                } else {
+                                    // Comprueba si el jugador ha ganado la supervivencia
+                                    if (aiEnemies.length === 0) {
+                                        playerData.credits += survivalPot;
+                                        playerData.stats.creditsEarned += survivalPot;
+                                        savePlayerData();
+                                        alert(`¡¡VICTORIA ABSOLUTA EN LA SUPERVIVENCIA!! Te has llevado el bote total de ${survivalPot.toLocaleString()} CR.`);
+                                        exitBattle();
+                                    }
+                                }
                             }
                             break;
                         }
                     }
                 }
 
-                // Los disparos de los bots IA dañan al jugador en modo individual.
-                if (p.owner === 'ai' && p2pRoomCode === 'SOLO' &&
-                    localPlayer && localPlayer.hull > 0 &&
+                // AI Shots vs Player
+                if (p.owner === 'ai' && localPlayer && localPlayer.hull > 0 &&
                     Math.hypot(p.x - localPlayer.x, p.y - localPlayer.y) < 25) {
                     p.life = 0;
                     applyPlayerDamage(p.damage);
                 }
 
-                // P2P: los proyectiles remotos dañan únicamente al jugador local.
-                // El cliente que dispara no aplica el impacto; así se evita duplicar daño.
+                // P2P: Remote shots vs Player
                 if (p.owner === 'remote' && p2pConn && p2pConn.open &&
                     localPlayer && localPlayer.hull > 0 &&
                     Math.hypot(p.x - localPlayer.x, p.y - localPlayer.y) < 25) {
@@ -897,7 +1071,7 @@
                 document.getElementById('hudShieldBar').style.width = `${Math.max(0, (localPlayer.shield/localPlayer.shieldMax)*100)}%`;
                 document.getElementById('hudHullText').innerText = `${Math.ceil(localPlayer.hull)} / 100`;
                 document.getElementById('hudHullBar').style.width = `${Math.max(0, localPlayer.hull)}%`;
-                document.getElementById('hudScore').innerText = localPlayer.score;
+                document.getElementById('hudScore').innerText = isSurvivalMode ? (aiEnemies.length + 1) : localPlayer.score;
             }
 
             requestAnimationFrame(gameLoop);
@@ -912,7 +1086,6 @@
         }));
 
         function drawSpaceBackground() {
-            // Deep Navy Blue Space Fill
             const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
             grad.addColorStop(0, '#020617');
             grad.addColorStop(0.5, '#0b132b');
@@ -920,14 +1093,12 @@
             ctx.fillStyle = grad;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Glowing Nebula Clouds
             const nebula = ctx.createRadialGradient(canvas.width*0.2, canvas.height*0.3, 20, canvas.width*0.2, canvas.height*0.3, 300);
             nebula.addColorStop(0, 'rgba(58, 134, 255, 0.15)');
             nebula.addColorStop(1, 'transparent');
             ctx.fillStyle = nebula;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Stars
             ctx.fillStyle = '#ffffff';
             starfield.forEach(st => {
                 ctx.globalAlpha = st.alpha;
@@ -968,11 +1139,13 @@
                 case 'crimson_blade': return '#ff0055';
                 case 'stealth_interceptor': return '#00f0ff';
                 case 'triwing_heavy': return '#ffd166';
+                case 'quantum_titan': return '#ffaa00';
+                case 'plasma_dreadnought': return '#00ffaa';
                 default: return '#00f0ff';
             }
         }
 
-        // PROCEDURAL CANVAS RENDERER FOR THE 4 SPECIFIC SPACESHIP MODELS
+        // PROCEDURAL CANVAS RENDERER FOR SPACESHIPS
         function drawShipModel(ship, overrideCtx = ctx, scale = 1) {
             overrideCtx.save();
             if (overrideCtx === ctx) {
@@ -983,12 +1156,11 @@
 
             const color = getShipColor(ship.model);
 
-            // Shield Arc
             if (ship.shield > 0 && overrideCtx === ctx) {
                 overrideCtx.strokeStyle = 'rgba(0, 240, 255, 0.35)';
                 overrideCtx.lineWidth = 2;
                 overrideCtx.beginPath();
-                overrideCtx.arc(0, 0, 26, 0, Math.PI * 2);
+                overrideCtx.arc(0, 0, 28, 0, Math.PI * 2);
                 overrideCtx.stroke();
             }
 
@@ -996,7 +1168,6 @@
             overrideCtx.shadowBlur = 12;
 
             if (ship.model === 'alien_bio') {
-                // MODEL 1: Alien Bio-Organic Harvester (Claws & Spikes)
                 overrideCtx.fillStyle = '#1e1b4b';
                 overrideCtx.strokeStyle = '#cf38ff';
                 overrideCtx.lineWidth = 2;
@@ -1013,14 +1184,12 @@
                 overrideCtx.closePath();
                 overrideCtx.fill(); overrideCtx.stroke();
 
-                // Spikes
                 overrideCtx.fillStyle = '#cf38ff';
                 overrideCtx.beginPath();
                 overrideCtx.arc(4, 0, 4, 0, Math.PI*2);
                 overrideCtx.fill();
 
             } else if (ship.model === 'crimson_blade') {
-                // MODEL 2: Crimson Blade Interceptor (Red Crescent Wings)
                 overrideCtx.fillStyle = '#450a0a';
                 overrideCtx.strokeStyle = '#ff0055';
                 overrideCtx.lineWidth = 2;
@@ -1034,7 +1203,6 @@
                 overrideCtx.fill(); overrideCtx.stroke();
 
             } else if (ship.model === 'stealth_interceptor') {
-                // MODEL 3: Metallic Stealth Blade (Prismatic Sharp Aircraft)
                 overrideCtx.fillStyle = '#0f172a';
                 overrideCtx.strokeStyle = '#00f0ff';
                 overrideCtx.lineWidth = 2;
@@ -1048,7 +1216,6 @@
                 overrideCtx.fill(); overrideCtx.stroke();
 
             } else if (ship.model === 'triwing_heavy') {
-                // MODEL 4: Orange Tri-Wing Heavy Destroyer (3-Way Triangular Core)
                 overrideCtx.fillStyle = '#451a03';
                 overrideCtx.strokeStyle = '#ffd166';
                 overrideCtx.lineWidth = 2.5;
@@ -1058,6 +1225,42 @@
                 overrideCtx.lineTo(-18, -18);
                 overrideCtx.lineTo(-10, 0);
                 overrideCtx.lineTo(-18, 18);
+                overrideCtx.closePath();
+                overrideCtx.fill(); overrideCtx.stroke();
+
+            } else if (ship.model === 'quantum_titan') {
+                // TITAN MODEL 1: Golden Quantum Star Destroyer
+                overrideCtx.fillStyle = '#3f2c00';
+                overrideCtx.strokeStyle = '#ffaa00';
+                overrideCtx.lineWidth = 3;
+
+                overrideCtx.beginPath();
+                overrideCtx.moveTo(28, 0);
+                overrideCtx.lineTo(10, -24);
+                overrideCtx.lineTo(-20, -28);
+                overrideCtx.lineTo(-12, -8);
+                overrideCtx.lineTo(-24, 0);
+                overrideCtx.lineTo(-12, 8);
+                overrideCtx.lineTo(-20, 28);
+                overrideCtx.lineTo(10, 24);
+                overrideCtx.closePath();
+                overrideCtx.fill(); overrideCtx.stroke();
+
+            } else if (ship.model === 'plasma_dreadnought') {
+                // TITAN MODEL 2: Neon Plasma Hex Dreadnought
+                overrideCtx.fillStyle = '#003b2b';
+                overrideCtx.strokeStyle = '#00ffaa';
+                overrideCtx.lineWidth = 3;
+
+                overrideCtx.beginPath();
+                overrideCtx.moveTo(30, 0);
+                overrideCtx.lineTo(16, -16);
+                overrideCtx.lineTo(-10, -25);
+                overrideCtx.lineTo(-25, -12);
+                overrideCtx.lineTo(-16, 0);
+                overrideCtx.lineTo(-25, 12);
+                overrideCtx.lineTo(-10, 25);
+                overrideCtx.lineTo(16, 16);
                 overrideCtx.closePath();
                 overrideCtx.fill(); overrideCtx.stroke();
             }
@@ -1094,15 +1297,19 @@
                 const isActive = playerData.activeShipId === ship.id;
 
                 const card = document.createElement('div');
-                card.className = "bg-slate-900/60 p-4 rounded-xl border border-slate-800 space-y-3 flex flex-col justify-between";
+                card.className = ship.tier === 'titan' ? 
+                    "bg-gradient-to-b from-amber-950/60 to-slate-900/80 p-4 rounded-xl border border-amber-500/50 space-y-3 flex flex-col justify-between shadow-goldGlow" : 
+                    "bg-slate-900/60 p-4 rounded-xl border border-slate-800 space-y-3 flex flex-col justify-between";
+
                 card.innerHTML = `
                     <div class="space-y-2">
                         <div class="flex justify-between items-start">
-                            <h3 class="font-bold text-white text-xs">${ship.name}</h3>
+                            <h3 class="font-bold text-white text-xs ${ship.tier === 'titan' ? 'text-amber-400 font-extrabold' : ''}">${ship.name}</h3>
                         </div>
                         <div class="text-[11px] space-y-1 text-slate-400">
                             <div>Escudo: <span class="text-void-cyan font-bold">${ship.shield} HP</span></div>
                             <div>Laser: <span class="text-amber-400 font-bold">${ship.dps} DPS</span></div>
+                            ${ship.tier === 'titan' ? `<div class="text-[9px] text-amber-300 font-bold uppercase tracking-wider">CLASE TITÁN SUPREMO</div>` : ''}
                         </div>
                     </div>
                     <div>
@@ -1110,7 +1317,7 @@
                             `<button onclick="setActiveShip('${ship.id}')" class="w-full py-1.5 rounded-lg font-bold text-xs ${isActive ? 'bg-void-cyan/20 border border-void-cyan text-void-cyan' : 'bg-slate-800 text-slate-200'}">
                                 ${isActive ? 'EQUIPADA' : 'EQUIPAR'}
                             </button>` :
-                            `<button onclick="buyShip('${ship.id}', ${ship.price})" class="w-full py-1.5 rounded-lg bg-amber-400 text-slate-950 font-bold text-xs">
+                            `<button onclick="buyShip('${ship.id}', ${ship.price})" class="w-full py-1.5 rounded-lg ${ship.tier === 'titan' ? 'bg-gradient-to-r from-amber-400 to-amber-600 text-slate-950' : 'bg-amber-400 text-slate-950'} font-bold text-xs">
                                 COMPRAR (${ship.price.toLocaleString()} CR)
                             </button>`
                         }
