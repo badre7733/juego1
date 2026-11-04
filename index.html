@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QUANTUM VOID - P2P Multiplayer Space Combat</title>
-    <!-- Tailwind CSS CDN --> 
+    <title>QUANTUM VOID 2.1 - Expanded Space Combat</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -28,8 +28,7 @@
                             danger: '#ff0055',
                             gold: '#ffd166',
                             crimson: '#a81c1c',
-                            bio: '#cf38ff',
-                            legendary: '#ffaa00'
+                            bio: '#cf38ff'
                         }
                     },
                     fontFamily: {
@@ -39,8 +38,7 @@
                     boxShadow: {
                         cyanGlow: '0 0 20px rgba(0, 240, 255, 0.4)',
                         cyanGlowStrong: '0 0 35px rgba(0, 240, 255, 0.8)',
-                        dangerGlow: '0 0 20px rgba(255, 0, 85, 0.5)',
-                        goldGlow: '0 0 25px rgba(255, 209, 102, 0.6)'
+                        dangerGlow: '0 0 20px rgba(255, 0, 85, 0.5)'
                     }
                 }
             }
@@ -60,12 +58,6 @@
             background: rgba(40, 10, 20, 0.82);
             backdrop-filter: blur(14px);
             border: 1px solid rgba(255, 0, 85, 0.35);
-        }
-        .glass-panel-gold {
-            background: rgba(35, 25, 5, 0.85);
-            backdrop-filter: blur(14px);
-            border: 1px solid rgba(255, 209, 102, 0.4);
-            box-shadow: inset 0 0 20px rgba(255, 209, 102, 0.1), 0 8px 32px 0 rgba(0, 0, 0, 0.7);
         }
 
         /* Touch Control Styling */
@@ -128,10 +120,6 @@
                     <button onclick="switchView('multiplayer')" class="w-full py-3 px-4 rounded-xl bg-slate-900 border border-void-cyan/50 text-void-cyan font-bold text-xs sm:text-sm hover:bg-void-cyan/10 transition flex items-center justify-center gap-2">
                         <i class="fa-solid fa-network-wired"></i> MULTIJUGADOR P2P
                     </button>
-                    <!-- EXTRA MODE BUTTON: MULTIPLAYER SURVIVAL BET arena -->
-                    <button onclick="switchView('survival')" class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-rose-600 text-slate-950 font-black text-xs sm:text-sm hover:brightness-125 transition shadow-goldGlow flex items-center justify-center gap-2 sm:col-span-2">
-                        <i class="fa-solid fa-trophy text-base sm:text-lg"></i> MODO APUESTAS: SUPERVIVENCIA (HASTA 10 JUGADORES)
-                    </button>
                     <button onclick="switchView('hangar')" class="w-full py-3 px-4 rounded-xl bg-slate-900/80 border border-slate-700 hover:border-void-cyan text-slate-200 font-bold text-xs sm:text-sm hover:bg-slate-800 transition flex items-center justify-center gap-2">
                         <i class="fa-solid fa-shuttle-space"></i> HANGAR Y MEJORAS
                     </button>
@@ -161,67 +149,6 @@
                     <div class="flex justify-between text-slate-400"><span>Potencia Laser:</span><span id="activeShipDPS" class="text-amber-400 font-bold">35 DPS</span></div>
                     <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden"><div id="barDPS" class="h-full bg-amber-400 w-2/3"></div></div>
                 </div>
-            </div>
-        </div>
-
-        <!-- ================= EXTRA MODE: MULTIPLAYER SURVIVAL BETS ================= -->
-        <div id="view-survival" class="ui-screen max-w-3xl w-full hidden glass-panel-gold p-5 sm:p-6 rounded-2xl space-y-5">
-            <div class="flex justify-between items-center border-b border-amber-500/30 pb-3">
-                <div>
-                    <h2 class="text-xl sm:text-2xl font-black text-amber-400 flex items-center gap-2"><i class="fa-solid fa-skull-crossbones text-rose-500"></i> SUPERVIVENCIA MULTIJUGADOR (10 JUGADORES)</h2>
-                    <p class="text-xs text-slate-300">Bote acumulado. Cada piloto apuesta sus monedas. El último piloto con vida se lleva el bote total.</p>
-                </div>
-                <button onclick="switchView('menu')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300">VOLVER</button>
-            </div>
-
-            <!-- BET SELECTION SECTION -->
-            <div class="bg-slate-950/80 p-4 rounded-xl border border-amber-500/40 space-y-4">
-                <div class="flex flex-col sm:flex-row justify-between items-center gap-3">
-                    <label for="survivalBetInput" class="text-xs font-bold text-amber-300 uppercase font-mono">Apuesta individual por piloto (CR):</label>
-                    <input type="number" id="survivalBetInput" min="1000" max="1000000" step="1000" value="50000" onchange="updateSurvivalPotDisplay()" class="bg-slate-900 border border-amber-500/50 rounded-lg px-3 py-2 text-amber-400 font-mono font-bold text-sm w-full sm:w-48 outline-none text-center">
-                </div>
-                
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs font-mono">
-                    <button onclick="setBetPreset(1000)" class="py-1.5 bg-slate-900 border border-slate-700 hover:border-amber-400 rounded text-amber-300">1,000 CR</button>
-                    <button onclick="setBetPreset(50000)" class="py-1.5 bg-slate-900 border border-slate-700 hover:border-amber-400 rounded text-amber-300">50,000 CR</button>
-                    <button onclick="setBetPreset(250000)" class="py-1.5 bg-slate-900 border border-slate-700 hover:border-amber-400 rounded text-amber-300">250,000 CR</button>
-                    <button onclick="setBetPreset(1000000)" class="py-1.5 bg-slate-900 border border-slate-700 hover:border-amber-400 rounded text-amber-300">1,000,000 CR</button>
-                </div>
-
-                <div class="p-3 bg-slate-900 rounded-lg border border-amber-500/30 flex justify-between items-center">
-                    <span class="text-xs text-slate-300 font-bold uppercase">BOTE TOTAL DE LA SALA (10 PILOTOS):</span>
-                    <span id="potTotalDisplay" class="text-xl font-extrabold text-amber-400 font-mono">500,000 CR</span>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <!-- HOST SURVIVAL -->
-                <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 space-y-3">
-                    <h3 class="text-sm font-bold text-amber-400"><i class="fa-solid fa-crown mr-1"></i> CREAR SALA DE SUPERVIVENCIA</h3>
-                    <p class="text-[11px] text-slate-400">Aloja una partida de 10 participantes con el bote fijado.</p>
-                    <button onclick="createSurvivalRoom()" class="w-full py-2.5 rounded-lg bg-gradient-to-r from-amber-400 to-amber-600 text-slate-950 font-black text-xs hover:brightness-110 shadow-goldGlow">
-                        CREAR SALA & PAGAR APUESTA
-                    </button>
-                    <div id="survivalHostDisplay" class="hidden bg-slate-950 border border-amber-400/40 rounded-lg p-3 text-center space-y-1">
-                        <div class="text-[10px] text-slate-400">CÓDIGO DE SUPERVIVENCIA:</div>
-                        <div id="survivalRoomCode" class="text-2xl font-extrabold text-amber-400 font-mono tracking-wider">------</div>
-                        <div class="text-[10px] text-emerald-400 animate-pulse">Esperando gladiadores (Lobby activado)...</div>
-                    </div>
-                </div>
-
-                <!-- JOIN SURVIVAL -->
-                <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 space-y-3">
-                    <h3 class="text-sm font-bold text-rose-400"><i class="fa-solid fa-crosshairs mr-1"></i> UNIRSE A SUPERVIVENCIA</h3>
-                    <p class="text-[11px] text-slate-400">Introduce el código del torneo de supervivencia.</p>
-                    <input type="text" id="joinSurvivalCodeInput" placeholder="EJ: SURV-4921" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 font-mono tracking-wider uppercase focus:border-rose-400 outline-none">
-                    <button onclick="joinSurvivalRoom()" class="w-full py-2.5 rounded-lg bg-rose-500 text-white font-black text-xs hover:brightness-110">
-                        PAGAR APUESTA Y UNIRSE
-                    </button>
-                </div>
-            </div>
-
-            <div id="survivalStatusLog" class="bg-slate-950 p-3 rounded-xl border border-slate-800 font-mono text-xs text-amber-400/80 min-h-12 flex items-center justify-center text-center">
-                Ajusta el monto de las apuestas y crea o únete a la sala de supervivencia.
             </div>
         </div>
 
@@ -313,18 +240,18 @@
             </div>
         </div>
 
-        <!-- ================= SHIP STORE (48 ARCHETYPES) ================= -->
+        <!-- ================= SHIP STORE (28 ARCHETYPES) ================= -->
         <div id="view-shop" class="ui-screen max-w-5xl w-full hidden glass-panel p-5 sm:p-6 rounded-2xl space-y-5">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
                 <div>
                     <h2 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-2"><i class="fa-solid fa-cart-shopping text-amber-400"></i> ASTILLERO (CATÁLOGO DE 48 NAVES)</h2>
-                    <p class="text-xs text-slate-400">Explora la flota completa con 28 modelos estándar y 20 modelos Titan de tecnología mística y precios millonarios.</p>
+                    <p class="text-xs text-slate-400">Explora la flota completa con los 4 modelos principales de combate y sus 28 variantes.</p>
                 </div>
                 <button onclick="switchView('menu')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300">VOLVER</button>
             </div>
 
             <div id="shopGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-h-[60vh] overflow-y-auto pr-1">
-                <!-- 48 Ships Generated via JS -->
+                <!-- 28 Ships Generated via JS -->
             </div>
         </div>
 
@@ -382,7 +309,7 @@
             <div class="glass-panel p-3 sm:p-4 rounded-xl text-right font-mono space-y-1">
                 <div class="text-[10px] sm:text-xs text-slate-400">SECTOR DE COMBATE</div>
                 <div id="hudRoomCode" class="text-sm sm:text-lg font-bold text-void-cyan">P2P-SOLO</div>
-                <div class="text-xs text-amber-400"><i class="fa-solid fa-crosshairs mr-1"></i> VIVOS EN SALA: <span id="hudScore">0</span></div>
+                <div class="text-xs text-amber-400"><i class="fa-solid fa-crosshairs mr-1"></i> BAJAS: <span id="hudScore">0</span></div>
             </div>
         </div>
 
@@ -402,7 +329,7 @@
         <!-- BOTTOM EXIT HINT -->
         <div class="flex justify-between items-end">
             <div class="glass-panel px-3 py-1.5 rounded-xl text-[10px] sm:text-xs font-mono text-slate-400 hidden sm:block">
-                [TECLADO] W/A/S/D = Mover | ESPACIO = Disparar | ESC = Salir
+                [TECLADO] W/A/S/D = Mover | ESPACIO = Disparar | 1/2/3 = Armas | X = Misil | P = Pausa | ESC = Salir
             </div>
             <button onclick="exitBattle()" class="pointer-events-auto px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl glass-panel-danger text-rose-400 font-bold text-xs hover:bg-rose-900/50 transition">
                 <i class="fa-solid fa-right-from-bracket mr-1"></i> RETIRARSE
@@ -412,11 +339,10 @@
 
     <!-- MAIN ENGINE & P2P CONTROLLER -->
     <script>
-        // ================= 48 SHIPS DATABASE =================
-        const SHIP_MODELS = ['alien_bio', 'crimson_blade', 'stealth_interceptor', 'triwing_heavy', 'quantum_titan', 'plasma_dreadnought'];
+        // ================= 28 SHIPS DATABASE =================
+        const SHIP_MODELS = ['alien_bio', 'crimson_blade', 'stealth_interceptor', 'triwing_heavy'];
         
-        // standard 28 ships
-        const SHIPS_DATABASE = Array.from({ length: 28 }, (_, i) => {
+        const SHIPS_DATABASE = Array.from({ length: 48 }, (_, i) => {
             const modelType = SHIP_MODELS[i % 4];
             const names = [
                 "Bio-Harvester Prime", "Crimson Vanguard", "Shadow Stealth", "Tri-Wing Dominator",
@@ -425,56 +351,33 @@
                 "Abyssal Leviathan", "Sanguine Dread", "Spectre Nova", "Omega Tri-Wing",
                 "Bio-Venom Destroyer", "Crimson Falcon", "Ghost Razor", "Titan Tri-Wing",
                 "Hive Swarm", "Ruby Reaper", "Nightstalker", "Supernova Wing",
-                "Nebula Crawler", "Scarlet Crusader", "Eclipse Phantom", "Hyperion Triad"
+                "Nebula Crawler", "Scarlet Crusader", "Eclipse Phantom", "Hyperion Triad",
+                "Bio-Tyrant Colossus", "Crimson Warlord", "Null Specter", "Astra Fortress",
+                "Venomous Sovereign", "Blood Eclipse", "Phantom Singularity", "Aetherion Dreadnought",
+                "Hive Matriarch", "Ruby Cataclysm", "Eventide Reaper", "Celestial Bastion",
+                "Voidspawn Overlord", "Scarlet Annihilator", "Ethereal Predator", "Hyperion Apex"
             ];
             return {
                 id: `ship_${i + 1}`,
                 name: names[i] || `Quantum Ship MK-${i+1}`,
                 model: modelType,
-                price: i === 0 ? 0 : 1500 * i,
+                price: i === 0 ? 0 : (i < 28 ? 1500 * i : 45000 + Math.pow(i - 27, 2) * 3200),
                 shield: 100 + (i * 15),
                 dps: 20 + (i * 5),
                 speed: 5 + (i * 0.15),
-                tier: 'standard'
+                tier: i < 8 ? 'BÁSICA' : i < 20 ? 'AVANZADA' : i < 28 ? 'ÉLITE' : 'LEGENDARIA',
+                family: ['BIO','CRIMSON','STEALTH','TRI-WING'][i % 4]
             };
         });
 
-        // 20 EXTRA HIGH-COST SOPHISTICATED TITAN SHIPS (Total 48)
-        const TITAN_NAMES = [
-            "Chronos Celestial Dreadnought", "Aetherius Singularity Titan", "Aureus Paragon Destroyer", "Void-God Supernova",
-            "Nebula Empress Harvester", "Dark Matter Leviathan", "Vortex Annihilator MK-X", "Astral Valkyrie Overlord",
-            "Galactic Oblivion Blade", "Cosmic Singularity Dread", "Quantum Eclipse Apex", "Hyper-Dimension Titan",
-            "Pulsar Sovereign Destroyer", "Starlight Chimera Prime", "Infinitum Void Behemoth", "Event-Horizon Conqueror",
-            "Super-Cluster Archon", "Tachyon Doom Bringer", "Omni-Sovereign Reaper", "Universal Void God Engine"
-        ];
-
-        for (let i = 0; i < 20; i++) {
-            const shipIdIndex = 29 + i;
-            const extraPrice = 150000 + (i * 450000); // Rango de precio extremo: 150k a 8.7M de monedas
-            SHIPS_DATABASE.push({
-                id: `ship_${shipIdIndex}`,
-                name: TITAN_NAMES[i],
-                model: i % 2 === 0 ? 'quantum_titan' : 'plasma_dreadnought',
-                price: extraPrice,
-                shield: 600 + (i * 120),
-                dps: 180 + (i * 35),
-                speed: 8 + (i * 0.25),
-                tier: 'titan'
-            });
-        }
-
         // ================= GAME STATE & PERSISTENCE =================
         let playerData = {
-            credits: 50000,
+            credits: 15000,
             ownedShips: ['ship_1'],
             activeShipId: 'ship_1',
             upgrades: { shield: 1, laser: 1, speed: 1 },
             stats: { kills: 0, deaths: 0, shotsFired: 0, shotsHit: 0, creditsEarned: 0 }
         };
-
-        let currentBetAmount = 50000;
-        let isSurvivalMode = false;
-        let survivalPot = 0;
 
         function loadPlayerData() {
             const saved = localStorage.getItem('qv_p2p_save');
@@ -493,18 +396,6 @@
             document.getElementById('globalCredits').innerText = playerData.credits.toLocaleString();
         }
 
-        function setBetPreset(amount) {
-            document.getElementById('survivalBetInput').value = amount;
-            updateSurvivalPotDisplay();
-        }
-
-        function updateSurvivalPotDisplay() {
-            const val = parseInt(document.getElementById('survivalBetInput').value) || 1000;
-            currentBetAmount = Math.max(1000, Math.min(1000000, val));
-            document.getElementById('survivalBetInput').value = currentBetAmount;
-            document.getElementById('potTotalDisplay').innerText = (currentBetAmount * 10).toLocaleString() + " CR";
-        }
-
         // ================= CANVAS ENGINE & GRAPHICS =================
         let canvas, ctx;
         let isGameRunning = false;
@@ -521,12 +412,19 @@
         let projectiles = [];
         let particles = [];
         let aiEnemies = [];
+        let survivalWave = 1;
+        let waveKills = 0;
+        let lastWaveSpawn = 0;
+        let respawnAt = 0;
 
         // P2P WebRTC State
         let peer = null;
         let p2pConn = null;
         let isHost = false;
         let p2pRoomCode = "SOLO";
+        const receivedHitIds = new Set();
+        let networkLastSnapshot = 0;
+        let networkPingAt = 0;
 
         window.onload = function() {
             canvas = document.getElementById('gameCanvas');
@@ -539,10 +437,10 @@
             populateShopGrid();
             populateOwnedShipsList();
             setupTouchEvents();
-            updateSurvivalPotDisplay();
 
             window.addEventListener('keydown', e => { keys[e.code] = true; });
             window.addEventListener('keyup', e => { keys[e.code] = false; });
+            window.addEventListener('keydown', e => { if (e.code === 'Escape' && isGameRunning) exitBattle(); });
 
             requestAnimationFrame(ambientLoop);
         };
@@ -616,7 +514,6 @@
 
         // ================= P2P PEERJS NETWORKING =================
         function createP2PRoom() {
-            isSurvivalMode = false;
             const code = 'QV-' + Math.floor(1000 + Math.random() * 9000);
             document.getElementById('p2pStatusLog').innerText = "Iniciando nodo PeerJS Anfitrión...";
 
@@ -642,9 +539,9 @@
         }
 
         function joinP2PRoom() {
-            isSurvivalMode = false;
-            const code = document.getElementById('joinRoomCodeInput').value.trim().toUpperCase();
+            const code = document.getElementById('joinRoomCodeInput').value.trim();
             if (!code) return alert("Introduce un código de sala válido.");
+            p2pRoomCode = code;
 
             document.getElementById('p2pStatusLog').innerText = `Conectando a la sala ${code}...`;
             peer = new Peer();
@@ -659,83 +556,49 @@
             });
         }
 
-        // ================= MULTIPLAYER SURVIVAL BET MODE (10 PILOTS) =================
-        function createSurvivalRoom() {
-            if (playerData.credits < currentBetAmount) {
-                return alert(`No tienes suficientes créditos para apostar ${currentBetAmount.toLocaleString()} CR.`);
-            }
-
-            playerData.credits -= currentBetAmount;
-            savePlayerData();
-
-            isSurvivalMode = true;
-            survivalPot = currentBetAmount * 10;
-            const code = 'SURV-' + Math.floor(1000 + Math.random() * 9000);
-            document.getElementById('survivalStatusLog').innerText = `Bote Pagado: ${currentBetAmount.toLocaleString()} CR. Creando sala de supervivencia de 10 personas...`;
-
-            peer = new Peer(code);
-            peer.on('open', id => {
-                isHost = true;
-                p2pRoomCode = id;
-                document.getElementById('survivalHostDisplay').classList.remove('hidden');
-                document.getElementById('survivalRoomCode').innerText = id;
-                document.getElementById('survivalStatusLog').innerText = `Sala de supervivencia lista. Código: ${id}. Entrando a la arena multijugador...`;
-                setTimeout(() => { startBattle(id); }, 1500);
-            });
-
-            peer.on('error', err => {
-                document.getElementById('survivalStatusLog').innerText = "Error al iniciar supervivencia: " + err.message;
-            });
-        }
-
-        function joinSurvivalRoom() {
-            const code = document.getElementById('joinSurvivalCodeInput').value.trim().toUpperCase();
-            if (!code) return alert("Introduce un código de supervivencia válido.");
-            
-            if (playerData.credits < currentBetAmount) {
-                return alert(`Necesitas al menos ${currentBetAmount.toLocaleString()} CR para entrar a esta partida de apuesta.`);
-            }
-
-            playerData.credits -= currentBetAmount;
-            savePlayerData();
-
-            isSurvivalMode = true;
-            survivalPot = currentBetAmount * 10;
-            document.getElementById('survivalStatusLog').innerText = `Apuesta descontada. Conectando al lobby de supervivencia...`;
-            peer = new Peer();
-
-            peer.on('open', () => {
-                p2pConn = peer.connect(code);
-                setupP2PDataHandlers();
-                setTimeout(() => { startBattle(code); }, 1000);
-            });
-
-            peer.on('error', err => {
-                document.getElementById('survivalStatusLog').innerText = "Error al unirse: " + err.message;
-            });
-        }
-
         function setupP2PDataHandlers() {
+            if (!p2pConn) return;
             p2pConn.on('open', () => {
                 document.getElementById('p2pStatusLog').innerText = "¡Conexión establecida! Cargando mapa...";
-                if (!isHost && !isSurvivalMode) setTimeout(() => { startP2PBattle(); }, 1000);
+                if (!isHost) setTimeout(() => { startP2PBattle(); }, 500);
             });
 
             p2pConn.on('data', data => {
-                if (data.type === 'PLAYER_SYNC') {
-                    remotePlayer = data.player;
-                } else if (data.type === 'FIRE_BULLET') {
+                if (!data || typeof data !== 'object') return;
+                if (data.type === 'PLAYER_SYNC' && data.player) {
+                    // Solo aceptar los campos de estado que necesita el render; evita datos inesperados.
+                    remotePlayer = {
+                        id: 'remote', x: Number(data.player.x) || 0, y: Number(data.player.y) || 0,
+                        vx: Number(data.player.vx) || 0, vy: Number(data.player.vy) || 0,
+                        angle: Number(data.player.angle) || 0, model: data.player.model || 'stealth_interceptor',
+                        shield: Math.max(0, Number(data.player.shield) || 0),
+                        shieldMax: Math.max(1, Number(data.player.shieldMax) || 100),
+                        hull: Math.max(0, Number(data.player.hull) || 0), hullMax: 100,
+                        score: Math.max(0, Number(data.player.score) || 0)
+                    };
+                } else if (data.type === 'FIRE_BULLET' && data.bullet) {
                     projectiles.push({ ...data.bullet, owner: 'remote' });
                 } else if (data.type === 'PLAYER_HIT') {
-                    if (localPlayer && localPlayer.hull > 0) {
-                        applyPlayerDamage(data.damage);
+                    // Deduplicación por identificador: un paquete repetido nunca aplica daño dos veces.
+                    if (data.hitId && receivedHitIds.has(data.hitId)) return;
+                    if (data.hitId) {
+                        receivedHitIds.add(data.hitId);
+                        if (receivedHitIds.size > 500) receivedHitIds.delete(receivedHitIds.values().next().value);
                     }
+                    if (localPlayer && localPlayer.hull > 0) applyPlayerDamage(data.damage);
+                } else if (data.type === 'PING') {
+                    p2pConn.send({ type: 'PONG', sentAt: data.sentAt });
+                } else if (data.type === 'PONG') {
+                    networkPingAt = Math.max(0, Date.now() - Number(data.sentAt || Date.now()));
                 }
             });
 
             p2pConn.on('close', () => {
-                alert("El otro jugador se ha desconectado.");
-                exitBattle();
+                document.getElementById('p2pStatusLog').innerText = "El otro jugador se ha desconectado.";
+                if (isGameRunning) exitBattle();
+            });
+            p2pConn.on('error', err => {
+                document.getElementById('p2pStatusLog').innerText = "Error de conexión: " + (err.message || 'desconocido');
             });
         }
 
@@ -760,16 +623,13 @@
                 localPlayer.hull = 0;
                 playerData.stats.deaths++;
                 createExplosion(localPlayer.x, localPlayer.y, '#ff0055');
-
-                if (isSurvivalMode) {
-                    alert("¡HAS SIDO ELIMINADO DE LA SUPERVIVENCIA MULTIJUGADOR! Has perdido tu apuesta.");
-                }
+                respawnAt = Date.now() + 2500;
             }
         }
 
         function startSinglePlayer() {
-            isSurvivalMode = false;
             isHost = true;
+            remotePlayer = null;
             p2pRoomCode = "SOLO";
             startBattle("SOLO");
         }
@@ -788,7 +648,7 @@
                 y: canvas.height / 2,
                 vx: 0, vy: 0,
                 angle: 0,
-                model: shipDef.model,
+                model: shipDef.model, tier: shipDef.tier, family: shipDef.family,
                 shieldMax: shipDef.shield * (1 + playerData.upgrades.shield * 0.2),
                 shield: shipDef.shield * (1 + playerData.upgrades.shield * 0.2),
                 hullMax: 100,
@@ -802,13 +662,11 @@
             projectiles = [];
             particles = [];
             aiEnemies = [];
+            survivalWave = 1; waveKills = 0; lastWaveSpawn = Date.now();
+            receivedHitIds.clear();
+            networkLastSnapshot = 0;
 
-            if (isSurvivalMode) {
-                // Genera los otros 9 contendientes (Bots de combate de supervivencia multi-sala)
-                for (let i = 0; i < 9; i++) {
-                    spawnAiEnemy(true);
-                }
-            } else if (isHost && roomCode === "SOLO") {
+            if (isHost && roomCode === "SOLO") {
                 spawnAiEnemy();
                 spawnAiEnemy();
             }
@@ -817,7 +675,8 @@
             requestAnimationFrame(gameLoop);
         }
 
-        function spawnAiEnemy(isSurvival = false) {
+        function spawnAiEnemy() {
+            // Evita que los bots aparezcan justo encima del jugador.
             let spawnX = Math.random() * canvas.width;
             let spawnY = Math.random() * canvas.height;
             if (localPlayer && Math.hypot(spawnX - localPlayer.x, spawnY - localPlayer.y) < 220) {
@@ -826,17 +685,15 @@
                 spawnY = localPlayer.y + Math.sin(spawnAngle) * 260;
             }
 
-            const modelRandom = isSurvival ? SHIP_MODELS[Math.floor(Math.random() * SHIP_MODELS.length)] : 'stealth_interceptor';
-
             aiEnemies.push({
                 id: 'ai_' + Math.random(),
                 x: Math.max(30, Math.min(canvas.width - 30, spawnX)),
                 y: Math.max(30, Math.min(canvas.height - 30, spawnY)),
                 vx: 0, vy: 0,
                 angle: Math.random() * Math.PI * 2,
-                model: modelRandom,
-                shield: isSurvival ? 250 : 80,
-                hull: isSurvival ? 150 : 80,
+                model: 'stealth_interceptor',
+                shield: 70 + survivalWave * 8,
+                hull: 70 + survivalWave * 8,
                 lastShot: Date.now() + Math.random() * 700,
                 strafeDirection: Math.random() < 0.5 ? -1 : 1,
                 decisionTime: 0
@@ -845,6 +702,8 @@
 
         function exitBattle() {
             isGameRunning = false;
+            remotePlayer = null;
+            respawnAt = 0;
             if (peer) { peer.destroy(); peer = null; p2pConn = null; }
             document.getElementById('gameHud').classList.add('hidden');
             switchView('menu');
@@ -898,6 +757,7 @@
                         vx: Math.cos(localPlayer.angle) * 12 + localPlayer.vx,
                         vy: Math.sin(localPlayer.angle) * 12 + localPlayer.vy,
                         owner: 'local',
+                        bulletId: `${Date.now()}_${Math.random().toString(36).slice(2)}`,
                         damage: localPlayer.dps,
                         life: 60,
                         color: getShipColor(localPlayer.model)
@@ -913,7 +773,8 @@
                 drawShipModel(localPlayer);
 
                 // Sync Player Position over WebRTC
-                if (p2pConn && p2pConn.open) {
+                if (p2pConn && p2pConn.open && Date.now() - networkLastSnapshot >= 50) {
+                    networkLastSnapshot = Date.now();
                     p2pConn.send({ type: 'PLAYER_SYNC', player: localPlayer });
                 }
             }
@@ -923,30 +784,55 @@
                 drawShipModel(remotePlayer);
             }
 
-            // AI Enemies Update
+            // En supervivencia individual, permite reaparecer tras una breve pausa.
+            if (p2pRoomCode === 'SOLO' && localPlayer && localPlayer.hull <= 0 && respawnAt && Date.now() >= respawnAt) {
+                localPlayer.hull = localPlayer.hullMax || 100;
+                localPlayer.shield = localPlayer.shieldMax;
+                localPlayer.x = canvas.width / 2; localPlayer.y = canvas.height / 2;
+                localPlayer.vx = 0; localPlayer.vy = 0;
+                respawnAt = 0;
+            }
+
+            // AI Enemies Update: persecución, distancia táctica, flanqueo y disparos.
             aiEnemies.forEach(ai => {
-                if (localPlayer && localPlayer.hull > 0) {
+                if (localPlayer && localPlayer.hull > 0 && p2pRoomCode === 'SOLO') {
                     const dx = localPlayer.x - ai.x;
                     const dy = localPlayer.y - ai.y;
                     const distance = Math.max(1, Math.hypot(dx, dy));
                     const targetAngle = Math.atan2(dy, dx);
 
+                    // Gira hacia el jugador suavemente, corrigiendo el salto angular en ±PI.
                     let angleDiff = targetAngle - ai.angle;
                     while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
                     while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
                     ai.angle += Math.max(-0.075, Math.min(0.075, angleDiff));
 
+                    // Cambia de lado periódicamente para no perseguir en línea recta.
                     if (Date.now() > (ai.decisionTime || 0)) {
                         ai.strafeDirection = Math.random() < 0.5 ? -1 : 1;
                         ai.decisionTime = Date.now() + 1100 + Math.random() * 900;
                     }
 
+                    // Mantiene una distancia de combate: se acerca si está lejos y se abre si está cerca.
                     const desiredDistance = 260;
                     const forwardForce = distance > desiredDistance + 55 ? 0.19 :
                                          distance < desiredDistance - 65 ? -0.13 : 0.015;
                     const strafeForce = distance < 520 ? ai.strafeDirection * 0.13 : 0.04;
                     ai.vx += Math.cos(ai.angle) * forwardForce - Math.sin(ai.angle) * strafeForce;
                     ai.vy += Math.sin(ai.angle) * forwardForce + Math.cos(ai.angle) * strafeForce;
+
+                    // Intenta esquivar proyectiles del jugador cercanos.
+                    for (let j = 0; j < projectiles.length; j++) {
+                        const shot = projectiles[j];
+                        if (shot.owner !== 'local') continue;
+                        const sx = ai.x - shot.x;
+                        const sy = ai.y - shot.y;
+                        if (sx * sx + sy * sy < 105 * 105) {
+                            const evade = Math.atan2(sy, sx);
+                            ai.vx += Math.cos(evade) * 0.22;
+                            ai.vy += Math.sin(evade) * 0.22;
+                        }
+                    }
 
                     ai.vx *= 0.975;
                     ai.vy *= 0.975;
@@ -959,6 +845,7 @@
                     ai.x += ai.vx;
                     ai.y += ai.vy;
 
+                    // Disparo con anticipación: calcula dónde estará el jugador al llegar el láser.
                     if (distance < 650 && Date.now() - ai.lastShot > 900 + Math.random() * 250) {
                         const bulletSpeed = 7.5;
                         const travelTime = distance / bulletSpeed;
@@ -979,6 +866,7 @@
                         ai.lastShot = Date.now();
                     }
 
+                    // Teletransporte de borde coherente con el movimiento del resto del juego.
                     if (ai.x < 0) ai.x = canvas.width;
                     if (ai.x > canvas.width) ai.x = 0;
                     if (ai.y < 0) ai.y = canvas.height;
@@ -999,8 +887,8 @@
                 ctx.lineTo(p.x - p.vx * 1.5, p.y - p.vy * 1.5);
                 ctx.stroke();
 
-                // Hit Detection vs AI.
-                if (p.owner === 'local') {
+                // Hit Detection vs AI (solo mode).
+                if (p.owner === 'local' && p2pRoomCode === 'SOLO') {
                     for (let aIdx = aiEnemies.length - 1; aIdx >= 0; aIdx--) {
                         const ai = aiEnemies[aIdx];
                         if (Math.hypot(p.x - ai.x, p.y - ai.y) < 22) {
@@ -1009,38 +897,49 @@
                             ai.shield -= p.damage;
                             if (ai.shield < 0) { ai.hull += ai.shield; ai.shield = 0; }
                             if (ai.hull <= 0) {
-                                createExplosion(ai.x, ai.y, '#ff0055');
+                                createExplosion(ai.x, ai.y, ai.enemyColor || '#ff0055');
                                 aiEnemies.splice(aIdx, 1);
                                 localPlayer.score++;
                                 playerData.stats.kills++;
-                                playerData.credits += 500;
-                                
-                                if (!isSurvivalMode) {
-                                    spawnAiEnemy();
-                                } else {
-                                    // Comprueba si el jugador ha ganado la supervivencia
-                                    if (aiEnemies.length === 0) {
-                                        playerData.credits += survivalPot;
-                                        playerData.stats.creditsEarned += survivalPot;
-                                        savePlayerData();
-                                        alert(`¡¡VICTORIA ABSOLUTA EN LA SUPERVIVENCIA!! Te has llevado el bote total de ${survivalPot.toLocaleString()} CR.`);
-                                        exitBattle();
-                                    }
-                                }
+                                waveKills++;
+                                qvRunStats.kills++;
+                                const reward = ai.reward || (500 + survivalWave * 50);
+                                playerData.credits += reward;
+                                playerData.stats.creditsEarned = (playerData.stats.creditsEarned || 0) + reward;
+                                if (ai.isBoss) { qvBoss = null; qvRunStats.bosses++; qvUnlock('boss_slayer'); }
+                                if (Math.random() < 0.22) qvDropPickup(ai.x, ai.y);
+                                savePlayerData();
+                                if (waveKills >= survivalWave * 3) {
+                                    survivalWave++; waveKills = 0;
+                                    for (let n = 0; n < Math.min(5, 1 + Math.floor(survivalWave / 2)); n++) spawnAiEnemy();
+                                    if (survivalWave % 5 === 0 && qvMode !== 'asteroids') qvSpawnBoss();
+                                } else { spawnAiEnemy(); }
                             }
                             break;
                         }
                     }
                 }
 
-                // AI Shots vs Player
-                if (p.owner === 'ai' && localPlayer && localPlayer.hull > 0 &&
+                // Los disparos de los bots IA dañan al jugador en modo individual.
+                if (p.owner === 'ai' && p2pRoomCode === 'SOLO' &&
+                    localPlayer && localPlayer.hull > 0 &&
                     Math.hypot(p.x - localPlayer.x, p.y - localPlayer.y) < 25) {
                     p.life = 0;
                     applyPlayerDamage(p.damage);
                 }
 
-                // P2P: Remote shots vs Player
+                // P2P: los proyectiles locales impactan al rival y notifican el daño.
+                if (p.owner === 'local' && p2pConn && p2pConn.open && remotePlayer &&
+                    remotePlayer.hull > 0 && Math.hypot(p.x - remotePlayer.x, p.y - remotePlayer.y) < 25) {
+                    p.life = 0;
+                    playerData.stats.shotsHit++;
+                    const hitId = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
+                    p2pConn.send({ type: 'PLAYER_HIT', hitId, damage: p.damage });
+                    localPlayer.score++;
+                }
+
+                // P2P: los proyectiles remotos dañan únicamente al jugador local.
+                // El cliente que dispara no aplica el impacto; así se evita duplicar daño.
                 if (p.owner === 'remote' && p2pConn && p2pConn.open &&
                     localPlayer && localPlayer.hull > 0 &&
                     Math.hypot(p.x - localPlayer.x, p.y - localPlayer.y) < 25) {
@@ -1071,7 +970,8 @@
                 document.getElementById('hudShieldBar').style.width = `${Math.max(0, (localPlayer.shield/localPlayer.shieldMax)*100)}%`;
                 document.getElementById('hudHullText').innerText = `${Math.ceil(localPlayer.hull)} / 100`;
                 document.getElementById('hudHullBar').style.width = `${Math.max(0, localPlayer.hull)}%`;
-                document.getElementById('hudScore').innerText = isSurvivalMode ? (aiEnemies.length + 1) : localPlayer.score;
+                document.getElementById('hudScore').innerText = localPlayer.score;
+                if (p2pRoomCode === 'SOLO') document.getElementById('hudRoomCode').innerText = `OLEADA ${survivalWave}`;
             }
 
             requestAnimationFrame(gameLoop);
@@ -1086,6 +986,7 @@
         }));
 
         function drawSpaceBackground() {
+            // Deep Navy Blue Space Fill
             const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
             grad.addColorStop(0, '#020617');
             grad.addColorStop(0.5, '#0b132b');
@@ -1093,12 +994,14 @@
             ctx.fillStyle = grad;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+            // Glowing Nebula Clouds
             const nebula = ctx.createRadialGradient(canvas.width*0.2, canvas.height*0.3, 20, canvas.width*0.2, canvas.height*0.3, 300);
             nebula.addColorStop(0, 'rgba(58, 134, 255, 0.15)');
             nebula.addColorStop(1, 'transparent');
             ctx.fillStyle = nebula;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+            // Stars
             ctx.fillStyle = '#ffffff';
             starfield.forEach(st => {
                 ctx.globalAlpha = st.alpha;
@@ -1139,13 +1042,11 @@
                 case 'crimson_blade': return '#ff0055';
                 case 'stealth_interceptor': return '#00f0ff';
                 case 'triwing_heavy': return '#ffd166';
-                case 'quantum_titan': return '#ffaa00';
-                case 'plasma_dreadnought': return '#00ffaa';
                 default: return '#00f0ff';
             }
         }
 
-        // PROCEDURAL CANVAS RENDERER FOR SPACESHIPS
+        // PROCEDURAL CANVAS RENDERER FOR THE 4 SPECIFIC SPACESHIP MODELS
         function drawShipModel(ship, overrideCtx = ctx, scale = 1) {
             overrideCtx.save();
             if (overrideCtx === ctx) {
@@ -1156,11 +1057,12 @@
 
             const color = getShipColor(ship.model);
 
+            // Shield Arc
             if (ship.shield > 0 && overrideCtx === ctx) {
                 overrideCtx.strokeStyle = 'rgba(0, 240, 255, 0.35)';
                 overrideCtx.lineWidth = 2;
                 overrideCtx.beginPath();
-                overrideCtx.arc(0, 0, 28, 0, Math.PI * 2);
+                overrideCtx.arc(0, 0, 26, 0, Math.PI * 2);
                 overrideCtx.stroke();
             }
 
@@ -1168,6 +1070,7 @@
             overrideCtx.shadowBlur = 12;
 
             if (ship.model === 'alien_bio') {
+                // MODEL 1: Alien Bio-Organic Harvester (Claws & Spikes)
                 overrideCtx.fillStyle = '#1e1b4b';
                 overrideCtx.strokeStyle = '#cf38ff';
                 overrideCtx.lineWidth = 2;
@@ -1184,12 +1087,14 @@
                 overrideCtx.closePath();
                 overrideCtx.fill(); overrideCtx.stroke();
 
+                // Spikes
                 overrideCtx.fillStyle = '#cf38ff';
                 overrideCtx.beginPath();
                 overrideCtx.arc(4, 0, 4, 0, Math.PI*2);
                 overrideCtx.fill();
 
             } else if (ship.model === 'crimson_blade') {
+                // MODEL 2: Crimson Blade Interceptor (Red Crescent Wings)
                 overrideCtx.fillStyle = '#450a0a';
                 overrideCtx.strokeStyle = '#ff0055';
                 overrideCtx.lineWidth = 2;
@@ -1203,6 +1108,7 @@
                 overrideCtx.fill(); overrideCtx.stroke();
 
             } else if (ship.model === 'stealth_interceptor') {
+                // MODEL 3: Metallic Stealth Blade (Prismatic Sharp Aircraft)
                 overrideCtx.fillStyle = '#0f172a';
                 overrideCtx.strokeStyle = '#00f0ff';
                 overrideCtx.lineWidth = 2;
@@ -1216,6 +1122,7 @@
                 overrideCtx.fill(); overrideCtx.stroke();
 
             } else if (ship.model === 'triwing_heavy') {
+                // MODEL 4: Orange Tri-Wing Heavy Destroyer (3-Way Triangular Core)
                 overrideCtx.fillStyle = '#451a03';
                 overrideCtx.strokeStyle = '#ffd166';
                 overrideCtx.lineWidth = 2.5;
@@ -1225,42 +1132,6 @@
                 overrideCtx.lineTo(-18, -18);
                 overrideCtx.lineTo(-10, 0);
                 overrideCtx.lineTo(-18, 18);
-                overrideCtx.closePath();
-                overrideCtx.fill(); overrideCtx.stroke();
-
-            } else if (ship.model === 'quantum_titan') {
-                // TITAN MODEL 1: Golden Quantum Star Destroyer
-                overrideCtx.fillStyle = '#3f2c00';
-                overrideCtx.strokeStyle = '#ffaa00';
-                overrideCtx.lineWidth = 3;
-
-                overrideCtx.beginPath();
-                overrideCtx.moveTo(28, 0);
-                overrideCtx.lineTo(10, -24);
-                overrideCtx.lineTo(-20, -28);
-                overrideCtx.lineTo(-12, -8);
-                overrideCtx.lineTo(-24, 0);
-                overrideCtx.lineTo(-12, 8);
-                overrideCtx.lineTo(-20, 28);
-                overrideCtx.lineTo(10, 24);
-                overrideCtx.closePath();
-                overrideCtx.fill(); overrideCtx.stroke();
-
-            } else if (ship.model === 'plasma_dreadnought') {
-                // TITAN MODEL 2: Neon Plasma Hex Dreadnought
-                overrideCtx.fillStyle = '#003b2b';
-                overrideCtx.strokeStyle = '#00ffaa';
-                overrideCtx.lineWidth = 3;
-
-                overrideCtx.beginPath();
-                overrideCtx.moveTo(30, 0);
-                overrideCtx.lineTo(16, -16);
-                overrideCtx.lineTo(-10, -25);
-                overrideCtx.lineTo(-25, -12);
-                overrideCtx.lineTo(-16, 0);
-                overrideCtx.lineTo(-25, 12);
-                overrideCtx.lineTo(-10, 25);
-                overrideCtx.lineTo(16, 16);
                 overrideCtx.closePath();
                 overrideCtx.fill(); overrideCtx.stroke();
             }
@@ -1297,19 +1168,16 @@
                 const isActive = playerData.activeShipId === ship.id;
 
                 const card = document.createElement('div');
-                card.className = ship.tier === 'titan' ? 
-                    "bg-gradient-to-b from-amber-950/60 to-slate-900/80 p-4 rounded-xl border border-amber-500/50 space-y-3 flex flex-col justify-between shadow-goldGlow" : 
-                    "bg-slate-900/60 p-4 rounded-xl border border-slate-800 space-y-3 flex flex-col justify-between";
-
+                card.className = "bg-slate-900/60 p-4 rounded-xl border border-slate-800 space-y-3 flex flex-col justify-between";
                 card.innerHTML = `
                     <div class="space-y-2">
                         <div class="flex justify-between items-start">
-                            <h3 class="font-bold text-white text-xs ${ship.tier === 'titan' ? 'text-amber-400 font-extrabold' : ''}">${ship.name}</h3>
+                            <h3 class="font-bold text-white text-xs">${ship.name}</h3>
+                            <span class="text-[9px] text-void-cyan">${ship.family} · ${ship.tier}</span>
                         </div>
                         <div class="text-[11px] space-y-1 text-slate-400">
                             <div>Escudo: <span class="text-void-cyan font-bold">${ship.shield} HP</span></div>
                             <div>Laser: <span class="text-amber-400 font-bold">${ship.dps} DPS</span></div>
-                            ${ship.tier === 'titan' ? `<div class="text-[9px] text-amber-300 font-bold uppercase tracking-wider">CLASE TITÁN SUPREMO</div>` : ''}
                         </div>
                     </div>
                     <div>
@@ -1317,7 +1185,7 @@
                             `<button onclick="setActiveShip('${ship.id}')" class="w-full py-1.5 rounded-lg font-bold text-xs ${isActive ? 'bg-void-cyan/20 border border-void-cyan text-void-cyan' : 'bg-slate-800 text-slate-200'}">
                                 ${isActive ? 'EQUIPADA' : 'EQUIPAR'}
                             </button>` :
-                            `<button onclick="buyShip('${ship.id}', ${ship.price})" class="w-full py-1.5 rounded-lg ${ship.tier === 'titan' ? 'bg-gradient-to-r from-amber-400 to-amber-600 text-slate-950' : 'bg-amber-400 text-slate-950'} font-bold text-xs">
+                            `<button onclick="buyShip('${ship.id}', ${ship.price})" class="w-full py-1.5 rounded-lg bg-amber-400 text-slate-950 font-bold text-xs">
                                 COMPRAR (${ship.price.toLocaleString()} CR)
                             </button>`
                         }
@@ -1380,6 +1248,227 @@
             }
             requestAnimationFrame(ambientLoop);
         }
+
+
+        // ================================================================
+        // QUANTUM VOID 2.1 — EXPANSION SYSTEMS
+        // Added: 48-ship fleet, three modes, weapon classes, missiles,
+        // asteroids, pickups, enemy variants, bosses, achievements and audio.
+        // ================================================================
+        let qvMode = 'survival';
+        let qvWeapon = 'laser';
+        let qvMissiles = 3;
+        let qvLives = 3;
+        let qvAsteroids = [];
+        let qvPickups = [];
+        let qvMissilesLive = [];
+        let qvBoss = null;
+        let qvLastWeaponFire = 0;
+        let qvLastMissile = 0;
+        let qvLastAsteroidSpawn = 0;
+        let qvLastPickup = 0;
+        let qvPaused = false;
+        let qvAudio = null;
+        let qvAchievements = JSON.parse(localStorage.getItem('qv_achievements') || '{}');
+        let qvRunStats = { kills: 0, pickups: 0, bosses: 0, start: 0 };
+        const qvAchievementDefs = [
+            ['first_kill','Primer contacto','Destruye tu primera nave'],
+            ['ace','As del vacío','Consigue 25 bajas en una partida'],
+            ['collector','Recogedor','Consigue 10 suministros'],
+            ['boss_slayer','Cazajefes','Derrota a un jefe'],
+            ['survivor','Superviviente','Alcanza la oleada 10'],
+            ['fleet','Almirante','Desbloquea 10 naves']
+        ];
+        const qvEnemyKinds = [
+            {kind:'scout', model:'stealth_interceptor', shield:48, hull:48, speed:1.25, color:'#ff647c', reward:250},
+            {kind:'striker', model:'crimson_blade', shield:85, hull:95, speed:0.85, color:'#ff9f43', reward:400},
+            {kind:'tank', model:'triwing_heavy', shield:180, hull:190, speed:0.48, color:'#bd75ff', reward:700}
+        ];
+
+        const qvBaseSpawnEnemy = spawnAiEnemy;
+        spawnAiEnemy = function(forceKind) {
+            const kindDef = forceKind || qvEnemyKinds[Math.min(qvEnemyKinds.length-1, Math.floor(Math.random() * (1 + survivalWave/4)))];
+            let x = Math.random()*canvas.width, y = Math.random()*canvas.height;
+            if (localPlayer && Math.hypot(x-localPlayer.x,y-localPlayer.y)<260) {
+                const a=Math.atan2(y-localPlayer.y,x-localPlayer.x); x=localPlayer.x+Math.cos(a)*300; y=localPlayer.y+Math.sin(a)*300;
+            }
+            const scale = 1 + Math.max(0,survivalWave-1)*0.12;
+            aiEnemies.push({id:'enemy_'+Math.random().toString(36).slice(2),kind:kindDef.kind,
+                x:Math.max(35,Math.min(canvas.width-35,x)),y:Math.max(35,Math.min(canvas.height-35,y)),
+                vx:0,vy:0,angle:Math.random()*Math.PI*2,model:kindDef.model,
+                shield:kindDef.shield*scale,hull:kindDef.hull*scale,
+                lastShot:Date.now()+Math.random()*900,strafeDirection:Math.random()<.5?-1:1,decisionTime:0,
+                speedScale:kindDef.speed, reward:kindDef.reward, enemyColor:kindDef.color});
+        };
+
+        function qvBuildExpansionUI() {
+            const menuGrid = document.querySelector('#view-menu .grid.grid-cols-1');
+            if (menuGrid && !document.getElementById('qvModePanel')) {
+                const panel=document.createElement('div'); panel.id='qvModePanel';
+                panel.className='sm:col-span-2 bg-slate-950/80 border border-void-cyan/30 rounded-xl p-3 space-y-2';
+                panel.innerHTML=`<div class="text-[10px] uppercase tracking-widest text-void-cyan font-mono">MODOS DE COMBATE</div>
+                <div class="grid grid-cols-3 gap-2">
+                  <button data-mode="survival" class="qv-mode px-2 py-2 rounded-lg border border-void-cyan bg-void-cyan/15 text-void-cyan text-[10px] font-bold">SUPERVIVENCIA</button>
+                  <button data-mode="asteroids" class="qv-mode px-2 py-2 rounded-lg border border-slate-700 bg-slate-900 text-slate-300 text-[10px] font-bold">CAMPO DE ASTEROIDES</button>
+                  <button data-mode="boss" class="qv-mode px-2 py-2 rounded-lg border border-slate-700 bg-slate-900 text-slate-300 text-[10px] font-bold">CAZajEFES</button>
+                </div><p class="text-[10px] text-slate-500">Selecciona un modo y pulsa JUGAR SOLO. Sin apuestas ni dinero real.</p>`;
+                menuGrid.appendChild(panel);
+                panel.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>{
+                    qvMode=b.dataset.mode;
+                    panel.querySelectorAll('[data-mode]').forEach(x=>x.className='qv-mode px-2 py-2 rounded-lg border border-slate-700 bg-slate-900 text-slate-300 text-[10px] font-bold');
+                    b.className='qv-mode px-2 py-2 rounded-lg border border-void-cyan bg-void-cyan/15 text-void-cyan text-[10px] font-bold';
+                }));
+            }
+            const hud=document.getElementById('gameHud');
+            if(hud && !document.getElementById('qvCombatPanel')) {
+                const panel=document.createElement('div'); panel.id='qvCombatPanel';
+                panel.className='pointer-events-auto absolute left-1/2 top-24 -translate-x-1/2 glass-panel rounded-xl px-3 py-2 flex flex-wrap items-center justify-center gap-2 text-[10px] font-mono';
+                panel.innerHTML=`<span class="text-slate-400">ARMA:</span>
+                  <button id="qvLaser" class="px-2 py-1 rounded bg-void-cyan text-slate-950 font-bold">1 LÁSER</button>
+                  <button id="qvSpread" class="px-2 py-1 rounded bg-slate-800 text-slate-200">2 DISPERSIÓN</button>
+                  <button id="qvPlasma" class="px-2 py-1 rounded bg-slate-800 text-slate-200">3 PLASMA</button>
+                  <button id="qvMissileBtn" class="px-2 py-1 rounded bg-rose-900/70 text-rose-200">X MISIL (<span id="qvMissileCount">3</span>)</button>
+                  <button id="qvPauseBtn" class="px-2 py-1 rounded bg-slate-800 text-white">P PAUSA</button>`;
+                hud.appendChild(panel);
+                const setWeapon=w=>{qvWeapon=w; ['laser','spread','plasma'].forEach(k=>{const el=document.getElementById('qv'+k[0].toUpperCase()+k.slice(1)); if(el)el.className='px-2 py-1 rounded '+(qvWeapon===k?'bg-void-cyan text-slate-950 font-bold':'bg-slate-800 text-slate-200');});};
+                document.getElementById('qvLaser').onclick=()=>setWeapon('laser');
+                document.getElementById('qvSpread').onclick=()=>setWeapon('spread');
+                document.getElementById('qvPlasma').onclick=()=>setWeapon('plasma');
+                document.getElementById('qvMissileBtn').onclick=qvLaunchMissile;
+                document.getElementById('qvPauseBtn').onclick=qvTogglePause;
+            }
+            if(!document.getElementById('qvAchievementsPanel')) {
+                const stats=document.getElementById('view-stats');
+                if(stats){const box=document.createElement('div');box.id='qvAchievementsPanel';box.className='border border-void-cyan/20 bg-slate-950/70 rounded-xl p-4 space-y-2';box.innerHTML='<h3 class="text-void-cyan font-bold text-sm">LOGROS</h3><div id="qvAchievementList" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div>';
+                    stats.appendChild(box); qvRenderAchievements();}
+            }
+        }
+
+        function qvRenderAchievements(){
+            const el=document.getElementById('qvAchievementList'); if(!el)return;
+            el.innerHTML=qvAchievementDefs.map(([id,name,desc])=>`<div class="p-2 rounded-lg border ${qvAchievements[id]?'border-amber-400/50 bg-amber-400/10':'border-slate-800 bg-slate-900/50'}"><div class="text-xs font-bold ${qvAchievements[id]?'text-amber-300':'text-slate-500'}">${qvAchievements[id]?'★':'◇'} ${name}</div><div class="text-[10px] text-slate-500">${desc}</div></div>`).join('');
+        }
+        function qvUnlock(id){if(qvAchievements[id])return;qvAchievements[id]=true;localStorage.setItem('qv_achievements',JSON.stringify(qvAchievements));qvRenderAchievements();qvToast('LOGRO DESBLOQUEADO: '+(qvAchievementDefs.find(a=>a[0]===id)?.[1]||id));}
+        function qvToast(msg){let t=document.getElementById('qvToast');if(!t){t=document.createElement('div');t.id='qvToast';t.className='fixed z-50 top-20 left-1/2 -translate-x-1/2 glass-panel px-4 py-2 rounded-xl text-void-cyan text-xs font-bold';document.body.appendChild(t);}t.textContent=msg;t.style.display='block';clearTimeout(t._timer);t._timer=setTimeout(()=>t.style.display='none',2200);}
+        function qvSound(freq=440,duration=.07,type='sine',volume=.035){try{qvAudio=qvAudio||new(window.AudioContext||window.webkitAudioContext)();if(qvAudio.state==='suspended')qvAudio.resume();const o=qvAudio.createOscillator(),g=qvAudio.createGain();o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(volume,qvAudio.currentTime);g.gain.exponentialRampToValueAtTime(.001,qvAudio.currentTime+duration);o.connect(g);g.connect(qvAudio.destination);o.start();o.stop(qvAudio.currentTime+duration);}catch(e){}}
+        function qvTogglePause(){qvPaused=!qvPaused;const b=document.getElementById('qvPauseBtn');if(b)b.textContent=qvPaused?'CONTINUAR':'P PAUSA';qvToast(qvPaused?'PARTIDA EN PAUSA':'PARTIDA REANUDADA');}
+        function qvLaunchMissile(){
+            if(!isGameRunning||qvPaused||qvMissiles<=0||!localPlayer||Date.now()-qvLastMissile<650)return;
+            qvMissiles--;qvLastMissile=Date.now();const angle=localPlayer.angle;
+            qvMissilesLive.push({x:localPlayer.x+Math.cos(angle)*24,y:localPlayer.y+Math.sin(angle)*24,vx:Math.cos(angle)*5+localPlayer.vx,vy:Math.sin(angle)*5+localPlayer.vy,life:150,damage:Math.max(55,localPlayer.dps*2.4),owner:'local',target:null});
+            if(p2pConn&&p2pConn.open)p2pConn.send({type:'MISSILE',missile:qvMissilesLive[qvMissilesLive.length-1]});
+            qvSound(180,.18,'sawtooth');qvUpdateMissileCount();
+        }
+        function qvUpdateMissileCount(){const e=document.getElementById('qvMissileCount');if(e)e.textContent=qvMissiles;}
+        function qvSpawnAsteroid(){const edge=Math.floor(Math.random()*4);let x=edge===0?0:edge===1?canvas.width:Math.random()*canvas.width;let y=edge===2?0:edge===3?canvas.height:Math.random()*canvas.height;const a=Math.atan2(canvas.height/2-y,canvas.width/2-x)+(Math.random()-.5);const r=18+Math.random()*34;qvAsteroids.push({x,y,vx:Math.cos(a)*(1+Math.random()*1.5),vy:Math.sin(a)*(1+Math.random()*1.5),r,rot:Math.random()*6,spin:(Math.random()-.5)*.025,hp:r*2,shape:Array.from({length:8},()=>.72+Math.random()*.55)});}
+        function qvDropPickup(x,y){const types=['shield','repair','missile','credits','rapid'];const type=types[Math.floor(Math.random()*types.length)];qvPickups.push({x,y,type,life:900});}
+        function qvApplyPickup(p){if(!localPlayer)return;switch(p.type){case'shield':localPlayer.shield=Math.min(localPlayer.shieldMax,localPlayer.shield+45);break;case'repair':localPlayer.hull=Math.min(localPlayer.hullMax||100,localPlayer.hull+35);break;case'missile':qvMissiles=Math.min(9,qvMissiles+2);qvUpdateMissileCount();break;case'credits':playerData.credits+=350;playerData.stats.creditsEarned=(playerData.stats.creditsEarned||0)+350;savePlayerData();break;case'rapid':localPlayer.rapidUntil=Date.now()+9000;break;}qvRunStats.pickups++;qvSound(720,.12,'triangle');if(qvRunStats.pickups>=10)qvUnlock('collector');}
+        function qvSpawnBoss(){if(qvBoss&&aiEnemies.includes(qvBoss))return;const boss={id:'qv_boss_'+Date.now(),kind:'boss',model:'triwing_heavy',x:canvas.width*.78,y:canvas.height*.5,vx:0,vy:0,angle:Math.PI,shield:650+survivalWave*65,hull:900+survivalWave*90,lastShot:0,strafeDirection:1,decisionTime:0,reward:5000,enemyColor:'#ff315d',isBoss:true};qvBoss=boss;aiEnemies.push(boss);qvToast('¡JEFE DETECTADO!');qvSound(90,.6,'sawtooth');}
+
+        const qvBaseStartBattle=startBattle;
+        startBattle=function(roomCode){qvBaseStartBattle(roomCode);qvAsteroids=[];qvPickups=[];qvMissilesLive=[];qvBoss=null;qvMissiles=3;qvPaused=false;qvRunStats={kills:0,pickups:0,bosses:0,start:Date.now()};qvLives=3;qvUpdateMissileCount();
+            if(qvMode==='asteroids'){for(let i=0;i<15;i++)qvSpawnAsteroid();for(let i=0;i<2;i++)spawnAiEnemy();}
+            if(qvMode==='boss'){qvSpawnBoss();for(let i=0;i<2;i++)spawnAiEnemy();}
+            if(qvMode==='survival'){for(let i=0;i<5;i++)qvSpawnAsteroid();}
+            qvSound(520,.12,'triangle');};
+
+        const qvBaseApplyDamage=applyPlayerDamage;
+        applyPlayerDamage=function(d){if(qvPaused)return;const aliveBefore=!!(localPlayer&&localPlayer.hull>0);qvBaseApplyDamage(d);if(aliveBefore&&localPlayer&&localPlayer.hull<=0){qvLives--;qvToast('NAVE DESTRUIDA · VIDAS RESTANTES: '+Math.max(0,qvLives));if(qvLives<=0){respawnAt=0;isGameRunning=false;document.getElementById('gameHud')?.classList.add('hidden');qvShowGameOver();}}qvSound(95,.12,'square',.025);};
+
+        const qvBaseGameLoop=gameLoop;
+        gameLoop=function(){
+            if(!isGameRunning)return;
+            if(qvPaused){ctx.fillStyle='rgba(0,0,0,.42)';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.fillStyle='#00f0ff';ctx.font='bold 32px Orbitron';ctx.textAlign='center';ctx.fillText('PAUSA',canvas.width/2,canvas.height/2);requestAnimationFrame(gameLoop);return;}
+            if(localPlayer){
+                if(keys['Digit1'])qvSetWeapon('laser');if(keys['Digit2'])qvSetWeapon('spread');if(keys['Digit3'])qvSetWeapon('plasma');
+                if(keys['KeyX']&&Date.now()-qvLastMissile>650)qvLaunchMissile();
+                const firing=keys['Space']||touchFiring;
+                if(firing&&Date.now()-qvLastWeaponFire>(localPlayer.rapidUntil>Date.now()?95:180)){
+                    qvLastWeaponFire=Date.now();
+                    qvSound(qvWeapon==='plasma'?260:qvWeapon==='spread'?480:720,.045,qvWeapon==='plasma'?'sawtooth':'triangle',.018);
+                    if(localPlayer.rapidUntil>Date.now())localPlayer.lastShot=Date.now()-185;
+                    if(qvWeapon==='spread'){
+                        for(const off of [-.22,.22]){const a=localPlayer.angle+off;projectiles.push({x:localPlayer.x+Math.cos(a)*22,y:localPlayer.y+Math.sin(a)*22,vx:Math.cos(a)*11+localPlayer.vx,vy:Math.sin(a)*11+localPlayer.vy,owner:'local',damage:localPlayer.dps*.48,life:55,color:'#ffcc66'});}
+                    }
+                    if(qvWeapon==='plasma')localPlayer.dps*=1.75;
+                    if(qvWeapon==='spread')localPlayer.dps*=.82;
+                }
+            }
+            // Ambient systems are advanced before the original renderer/collision engine.
+            qvUpdateWorld();
+            qvBaseGameLoop();
+            qvRenderWorld();
+            if(localPlayer&&qvWeapon==='plasma'&&localPlayer.dps){const ship=SHIPS_DATABASE.find(s=>s.id===playerData.activeShipId);localPlayer.dps=ship.dps*(1+playerData.upgrades.laser*.2);}
+        };
+        function qvSetWeapon(w){qvWeapon=w;['laser','spread','plasma'].forEach(k=>{const e=document.getElementById('qv'+k[0].toUpperCase()+k.slice(1));if(e)e.className='px-2 py-1 rounded '+(w===k?'bg-void-cyan text-slate-950 font-bold':'bg-slate-800 text-slate-200');});qvToast('ARMA: '+w.toUpperCase());}
+        function qvUpdateWorld(){
+            const now=Date.now();
+            if(qvMode==='asteroids'&&now-qvLastAsteroidSpawn>1600&&qvAsteroids.length<24){qvSpawnAsteroid();qvLastAsteroidSpawn=now;}
+            if(qvMode==='survival'&&now-qvLastAsteroidSpawn>6000&&qvAsteroids.length<12){qvSpawnAsteroid();qvLastAsteroidSpawn=now;}
+            if(qvMode==='boss'&&(!qvBoss||!aiEnemies.includes(qvBoss))&&qvRunStats.bosses>0&&now-qvLastPickup>7000){qvSpawnBoss();qvLastPickup=now;}
+            // Asteroids: rotation, collision and projectile damage.
+            for(let i=qvAsteroids.length-1;i>=0;i--){const a=qvAsteroids[i];a.x+=a.vx;a.y+=a.vy;a.rot+=a.spin;if(a.x<-70||a.x>canvas.width+70||a.y<-70||a.y>canvas.height+70){qvAsteroids.splice(i,1);continue;}
+                if(localPlayer&&localPlayer.hull>0&&Math.hypot(a.x-localPlayer.x,a.y-localPlayer.y)<a.r+16){applyPlayerDamage(5);const ang=Math.atan2(localPlayer.y-a.y,localPlayer.x-a.x);localPlayer.vx+=Math.cos(ang)*2;localPlayer.vy+=Math.sin(ang)*2;}
+                for(let j=projectiles.length-1;j>=0;j--){const p=projectiles[j];if(p.owner==='local'&&Math.hypot(p.x-a.x,p.y-a.y)<a.r){a.hp-=p.damage||10;p.life=0;if(a.hp<=0){createExplosion(a.x,a.y,'#aab4c4');if(Math.random()<.22)qvDropPickup(a.x,a.y);qvAsteroids.splice(i,1);}break;}}
+            }
+            // Pickups.
+            for(let i=qvPickups.length-1;i>=0;i--){const p=qvPickups[i];p.life--;if(p.life<=0){qvPickups.splice(i,1);continue;}if(localPlayer&&Math.hypot(p.x-localPlayer.x,p.y-localPlayer.y)<30){qvApplyPickup(p);qvPickups.splice(i,1);}}
+            // Homing missiles, target enemies in solo and remote player in P2P.
+            for(let i=qvMissilesLive.length-1;i>=0;i--){const m=qvMissilesLive[i];m.life--;let target=null;
+                if(m.owner==='local'){if(p2pRoomCode!=='SOLO'&&remotePlayer)target=remotePlayer;else target=aiEnemies.filter(e=>!e.isBoss||true).sort((a,b)=>Math.hypot(a.x-m.x,a.y-m.y)-Math.hypot(b.x-m.x,b.y-m.y))[0];}
+                else target=localPlayer;
+                if(target){const desired=Math.atan2(target.y-m.y,target.x-m.x),cur=Math.atan2(m.vy,m.vx);let d=desired-cur;while(d>Math.PI)d-=Math.PI*2;while(d< -Math.PI)d+=Math.PI*2;const ang=cur+Math.max(-.075,Math.min(.075,d));const speed=8;m.vx=m.vx*.94+Math.cos(ang)*speed*.06;m.vy=m.vy*.94+Math.sin(ang)*speed*.06;}
+                m.x+=m.vx;m.y+=m.vy;
+                if(target&&Math.hypot(target.x-m.x,target.y-m.y)<(target.isBoss?48:28)){
+                    if(m.owner==='local'&&target!==remotePlayer){target.shield-=m.damage;if(target.shield<0){target.hull+=target.shield;target.shield=0;}if(target.hull<=0)qvKillEnemy(target);}
+                    else if(m.owner==='local'&&target===remotePlayer&&p2pConn?.open)p2pConn.send({type:'PLAYER_HIT',hitId:'missile_'+Date.now()+'_'+Math.random(),damage:m.damage});
+                    else if(m.owner==='remote')applyPlayerDamage(m.damage);
+                    createExplosion(m.x,m.y,'#ffb347');qvMissilesLive.splice(i,1);continue;
+                }
+                if(m.life<=0)qvMissilesLive.splice(i,1);
+            }
+            // Drops and achievements.
+            if(qvRunStats.kills>=1)qvUnlock('first_kill');if(qvRunStats.kills>=25)qvUnlock('ace');if(survivalWave>=10)qvUnlock('survivor');if(playerData.ownedShips.length>=10)qvUnlock('fleet');
+        }
+        function qvKillEnemy(e){const idx=aiEnemies.indexOf(e);if(idx<0)return;aiEnemies.splice(idx,1);createExplosion(e.x,e.y,e.enemyColor||'#ff3355');qvRunStats.kills++;playerData.stats.kills++;if(localPlayer)localPlayer.score++;waveKills++;if(e.isBoss){qvBoss=null;qvRunStats.bosses++;qvUnlock('boss_slayer');}const reward=e.reward||300;playerData.credits+=reward;playerData.stats.creditsEarned=(playerData.stats.creditsEarned||0)+reward;savePlayerData();if(Math.random()<.2)qvDropPickup(e.x,e.y);if(waveKills>=survivalWave*3){survivalWave++;waveKills=0;if(survivalWave%5===0&&qvMode!=='asteroids')qvSpawnBoss();}else if(qvMode!=='boss')spawnAiEnemy();}
+        function qvRenderWorld(){
+            const livesEl=document.getElementById('qvLivesCount');if(livesEl)livesEl.textContent=qvLives;
+            // Asteroids.
+            qvAsteroids.forEach(a=>{ctx.save();ctx.translate(a.x,a.y);ctx.rotate(a.rot);ctx.fillStyle='#687386';ctx.strokeStyle='#a8b2c2';ctx.lineWidth=2;ctx.beginPath();a.shape.forEach((v,i)=>{const ang=i/a.shape.length*Math.PI*2,r=a.r*v;if(i===0)ctx.moveTo(Math.cos(ang)*r,Math.sin(ang)*r);else ctx.lineTo(Math.cos(ang)*r,Math.sin(ang)*r);});ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();});
+            // Pickups.
+            qvPickups.forEach(p=>{const colors={shield:'#00e5ff',repair:'#5dff9b',missile:'#ff8c42',credits:'#ffd166',rapid:'#cf72ff'};ctx.save();ctx.shadowBlur=18;ctx.shadowColor=colors[p.type];ctx.fillStyle=colors[p.type];ctx.beginPath();ctx.arc(p.x,p.y,10+Math.sin(Date.now()/130)*2,0,Math.PI*2);ctx.fill();ctx.fillStyle='#07111e';ctx.font='bold 10px sans-serif';ctx.textAlign='center';ctx.fillText(({shield:'S',repair:'+',missile:'M',credits:'$',rapid:'R'})[p.type],p.x,p.y+3);ctx.restore();});
+            // Missiles.
+            qvMissilesLive.forEach(m=>{ctx.save();ctx.translate(m.x,m.y);ctx.rotate(Math.atan2(m.vy,m.vx));ctx.fillStyle='#ffb347';ctx.shadowBlur=15;ctx.shadowColor='#ff6b35';ctx.fillRect(-8,-3,17,6);ctx.fillStyle='#fff2b0';ctx.fillRect(-13,-2,5,4);ctx.restore();});
+            // Boss health bar and enemy class labels.
+            aiEnemies.forEach(e=>{if(e.isBoss){const w=Math.min(360,canvas.width*.55),x=(canvas.width-w)/2,y=canvas.height-34;ctx.fillStyle='rgba(0,0,0,.7)';ctx.fillRect(x,y,w,12);ctx.fillStyle='#ff315d';ctx.fillRect(x,y,w*Math.max(0,e.hull/(900+survivalWave*90)),12);ctx.fillStyle='#fff';ctx.font='bold 11px Orbitron';ctx.textAlign='center';ctx.fillText('JEFE: NÚCLEO TITÁN',canvas.width/2,y-6);}});
+            const label=document.getElementById('hudRoomCode');if(label&&qvMode!=='survival'&&p2pRoomCode==='SOLO')label.textContent=qvMode==='boss'?'CAZAjEFES':'CAMPO DE ASTEROIDES';
+        }
+
+        // Replace the original enemy kill handler with a shared reward/achievement path.
+        function qvShowGameOver(){
+            let modal=document.getElementById('qvGameOver');if(!modal){modal=document.createElement('div');modal.id='qvGameOver';modal.className='fixed inset-0 z-[80] bg-slate-950/90 flex items-center justify-center p-4';document.body.appendChild(modal);}
+            modal.innerHTML=`<div class="glass-panel rounded-2xl p-8 max-w-md w-full text-center space-y-4"><div class="text-rose-400 text-5xl">✦</div><h2 class="text-2xl font-black text-white">NAVE DESTRUIDA</h2><p class="text-slate-400 text-sm">Fin de la partida · Bajas: ${localPlayer?.score||0} · Oleada: ${survivalWave}</p><div class="text-amber-300 font-bold">+ Recompensas guardadas</div><button id="qvAgain" class="w-full py-3 rounded-xl bg-void-cyan text-slate-950 font-black">VOLVER A JUGAR</button><button id="qvMenu" class="w-full py-3 rounded-xl bg-slate-800 text-white font-bold">MENÚ PRINCIPAL</button></div>`;
+            document.getElementById('qvAgain').onclick=()=>{modal.remove();startSinglePlayer();};
+            document.getElementById('qvMenu').onclick=()=>{modal.remove();switchView('menu');};
+        }
+
+        // Weapon controls and pause shortcuts.
+        window.addEventListener('keydown',e=>{if(e.code==='KeyP'&&isGameRunning)qvTogglePause();if(e.code==='KeyX'&&isGameRunning)qvLaunchMissile();});
+        const qvOldOnload=window.onload;
+        window.onload=function(){if(qvOldOnload)qvOldOnload();qvBuildExpansionUI();qvRenderAchievements();};
+
+        // Keep the original hit loop but grant extra progression when the base AI death branch fires.
+        const qvBaseDrawShipModel=drawShipModel;
+        drawShipModel=function(ship,overrideCtx=ctx,scale=1){qvBaseDrawShipModel(ship,overrideCtx,scale);if(overrideCtx===ctx&&ship){if(ship.isBoss){ctx.save();ctx.strokeStyle='#ff315d';ctx.globalAlpha=.45;ctx.lineWidth=2;ctx.beginPath();ctx.arc(ship.x,ship.y,44+Math.sin(Date.now()/140)*4,0,Math.PI*2);ctx.stroke();ctx.restore();}else if(ship.tier==='LEGENDARIA'){ctx.save();ctx.strokeStyle='#ffd166';ctx.globalAlpha=.55;ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(ship.x,ship.y,30+Math.sin(Date.now()/180)*2,0,Math.PI*2);ctx.stroke();ctx.restore();}}};
+
+        // Add weapon and missile protocol support to the existing P2P receiver.
+        const qvOldHandlers=setupP2PDataHandlers;
+        setupP2PDataHandlers=function(){qvOldHandlers();if(!p2pConn)return;p2pConn.on('data',data=>{if(data?.type==='MISSILE'&&data.missile)qvMissilesLive.push({...data.missile,owner:'remote'});});};
+
+        // Extend the store with premium tiers and refresh its heading.
+        const shopHeading=document.querySelector('#view-shop h2');if(shopHeading)shopHeading.innerHTML='<i class="fa-solid fa-cart-shopping text-amber-400"></i> ASTILLERO (48 NAVES)';
+        const shopDescription=document.querySelector('#view-shop p');if(shopDescription)shopDescription.textContent='48 naves en cuatro familias, desde cazas ligeros hasta destructores de élite.';
+
     </script>
 </body>
 </html>
