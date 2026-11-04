@@ -637,16 +637,27 @@
         }
 
         function spawnAiEnemy() {
+            // Evita que los bots aparezcan justo encima del jugador.
+            let spawnX = Math.random() * canvas.width;
+            let spawnY = Math.random() * canvas.height;
+            if (localPlayer && Math.hypot(spawnX - localPlayer.x, spawnY - localPlayer.y) < 220) {
+                const spawnAngle = Math.atan2(spawnY - localPlayer.y, spawnX - localPlayer.x);
+                spawnX = localPlayer.x + Math.cos(spawnAngle) * 260;
+                spawnY = localPlayer.y + Math.sin(spawnAngle) * 260;
+            }
+
             aiEnemies.push({
                 id: 'ai_' + Math.random(),
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height,
+                x: Math.max(30, Math.min(canvas.width - 30, spawnX)),
+                y: Math.max(30, Math.min(canvas.height - 30, spawnY)),
                 vx: 0, vy: 0,
                 angle: Math.random() * Math.PI * 2,
                 model: 'stealth_interceptor',
                 shield: 80,
                 hull: 80,
-                lastShot: 0
+                lastShot: Date.now() + Math.random() * 700,
+                strafeDirection: Math.random() < 0.5 ? -1 : 1,
+                decisionTime: 0
             });
         }
 
@@ -730,14 +741,84 @@
                 drawShipModel(remotePlayer);
             }
 
-            // AI Enemies Update
+            // AI Enemies Update: persecución, distancia táctica, flanqueo y disparos.
             aiEnemies.forEach(ai => {
-                if (localPlayer) {
-                    let targetAngle = Math.atan2(localPlayer.y - ai.y, localPlayer.x - ai.x);
-                    ai.angle += (targetAngle - ai.angle) * 0.05;
-                    ai.vx += Math.cos(ai.angle) * 0.15; ai.vy += Math.sin(ai.angle) * 0.15;
-                    ai.vx *= 0.96; ai.vy *= 0.96;
-                    ai.x += ai.vx; ai.y += ai.vy;
+                if (localPlayer && localPlayer.hull > 0 && p2pRoomCode === 'SOLO') {
+                    const dx = localPlayer.x - ai.x;
+                    const dy = localPlayer.y - ai.y;
+                    const distance = Math.max(1, Math.hypot(dx, dy));
+                    const targetAngle = Math.atan2(dy, dx);
+
+                    // Gira hacia el jugador suavemente, corrigiendo el salto angular en ±PI.
+                    let angleDiff = targetAngle - ai.angle;
+                    while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+                    while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+                    ai.angle += Math.max(-0.075, Math.min(0.075, angleDiff));
+
+                    // Cambia de lado periódicamente para no perseguir en línea recta.
+                    if (Date.now() > (ai.decisionTime || 0)) {
+                        ai.strafeDirection = Math.random() < 0.5 ? -1 : 1;
+                        ai.decisionTime = Date.now() + 1100 + Math.random() * 900;
+                    }
+
+                    // Mantiene una distancia de combate: se acerca si está lejos y se abre si está cerca.
+                    const desiredDistance = 260;
+                    const forwardForce = distance > desiredDistance + 55 ? 0.19 :
+                                         distance < desiredDistance - 65 ? -0.13 : 0.015;
+                    const strafeForce = distance < 520 ? ai.strafeDirection * 0.13 : 0.04;
+                    ai.vx += Math.cos(ai.angle) * forwardForce - Math.sin(ai.angle) * strafeForce;
+                    ai.vy += Math.sin(ai.angle) * forwardForce + Math.cos(ai.angle) * strafeForce;
+
+                    // Intenta esquivar proyectiles del jugador cercanos.
+                    for (let j = 0; j < projectiles.length; j++) {
+                        const shot = projectiles[j];
+                        if (shot.owner !== 'local') continue;
+                        const sx = ai.x - shot.x;
+                        const sy = ai.y - shot.y;
+                        if (sx * sx + sy * sy < 105 * 105) {
+                            const evade = Math.atan2(sy, sx);
+                            ai.vx += Math.cos(evade) * 0.22;
+                            ai.vy += Math.sin(evade) * 0.22;
+                        }
+                    }
+
+                    ai.vx *= 0.975;
+                    ai.vy *= 0.975;
+                    const maxSpeed = 3.2;
+                    const speed = Math.hypot(ai.vx, ai.vy);
+                    if (speed > maxSpeed) {
+                        ai.vx = ai.vx / speed * maxSpeed;
+                        ai.vy = ai.vy / speed * maxSpeed;
+                    }
+                    ai.x += ai.vx;
+                    ai.y += ai.vy;
+
+                    // Disparo con anticipación: calcula dónde estará el jugador al llegar el láser.
+                    if (distance < 650 && Date.now() - ai.lastShot > 900 + Math.random() * 250) {
+                        const bulletSpeed = 7.5;
+                        const travelTime = distance / bulletSpeed;
+                        const aimX = localPlayer.x + localPlayer.vx * travelTime * 0.72;
+                        const aimY = localPlayer.y + localPlayer.vy * travelTime * 0.72;
+                        const shotAngle = Math.atan2(aimY - ai.y, aimX - ai.x);
+                        const bullet = {
+                            x: ai.x + Math.cos(shotAngle) * 22,
+                            y: ai.y + Math.sin(shotAngle) * 22,
+                            vx: Math.cos(shotAngle) * bulletSpeed + ai.vx * 0.25,
+                            vy: Math.sin(shotAngle) * bulletSpeed + ai.vy * 0.25,
+                            owner: 'ai',
+                            damage: 9,
+                            life: 95,
+                            color: '#ff5b5b'
+                        };
+                        projectiles.push(bullet);
+                        ai.lastShot = Date.now();
+                    }
+
+                    // Teletransporte de borde coherente con el movimiento del resto del juego.
+                    if (ai.x < 0) ai.x = canvas.width;
+                    if (ai.x > canvas.width) ai.x = 0;
+                    if (ai.y < 0) ai.y = canvas.height;
+                    if (ai.y > canvas.height) ai.y = 0;
                 }
                 drawShipModel(ai);
             });
@@ -774,6 +855,14 @@
                             break;
                         }
                     }
+                }
+
+                // Los disparos de los bots IA dañan al jugador en modo individual.
+                if (p.owner === 'ai' && p2pRoomCode === 'SOLO' &&
+                    localPlayer && localPlayer.hull > 0 &&
+                    Math.hypot(p.x - localPlayer.x, p.y - localPlayer.y) < 25) {
+                    p.life = 0;
+                    applyPlayerDamage(p.damage);
                 }
 
                 // P2P: los proyectiles remotos dañan únicamente al jugador local.
