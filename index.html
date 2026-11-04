@@ -1,708 +1,1089 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="h-full bg-slate-950 text-slate-100 select-none overflow-hidden">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>QUANTUM VOID — Multiplayer Space Combat</title>
-  <!-- Carga de PeerJS para multijugador P2P libre sin backend -->
-  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      user-select: none;
-      -webkit-user-select: none;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>QUANTUM VOID - P2P Multiplayer Space Combat</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <!-- PeerJS WebRTC Library for Direct Instant P2P -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 
-    body, html {
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background-color: #030712;
-      color: #e0f2fe;
-    }
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        void: {
+                            900: '#030712',
+                            800: '#0b132b',
+                            700: '#1c2541',
+                            cyan: '#00f0ff',
+                            blue: '#3a86ff',
+                            neon: '#05d9e8',
+                            danger: '#ff0055',
+                            gold: '#ffd166',
+                            crimson: '#a81c1c',
+                            bio: '#cf38ff'
+                        }
+                    },
+                    fontFamily: {
+                        orbitron: ['Orbitron', 'sans-serif'],
+                        rajdhani: ['Rajdhani', 'sans-serif']
+                    },
+                    boxShadow: {
+                        cyanGlow: '0 0 20px rgba(0, 240, 255, 0.4)',
+                        cyanGlowStrong: '0 0 35px rgba(0, 240, 255, 0.8)',
+                        dangerGlow: '0 0 20px rgba(255, 0, 85, 0.5)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Rajdhani', sans-serif; overflow: hidden; background-color: #030712; touch-action: none; }
+        h1, h2, h3, .font-title { font-family: 'Orbitron', sans-serif; }
+        
+        .glass-panel {
+            background: rgba(11, 19, 43, 0.82);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(0, 240, 255, 0.25);
+            box-shadow: inset 0 0 15px rgba(0, 240, 255, 0.05), 0 8px 32px 0 rgba(0, 0, 0, 0.6);
+        }
+        .glass-panel-danger {
+            background: rgba(40, 10, 20, 0.82);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 0, 85, 0.35);
+        }
 
-    #game-container {
-      position: relative;
-      width: 100vw;
-      height: 100vh;
-    }
-
-    canvas {
-      display: block;
-      width: 100%;
-      height: 100%;
-    }
-
-    /* CAPAS UI Y MENÚS */
-    .ui-layer {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: 15px;
-      z-index: 10;
-    }
-
-    .interactive {
-      pointer-events: auto;
-    }
-
-    .hud-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      width: 100%;
-    }
-
-    .status-panel {
-      background: rgba(8, 15, 30, 0.85);
-      border: 1px solid #00f0ff;
-      box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
-      padding: 10px 15px;
-      border-radius: 8px;
-      min-width: 220px;
-      backdrop-filter: blur(5px);
-    }
-
-    .bar-container {
-      width: 100%;
-      height: 12px;
-      background: #1e293b;
-      border-radius: 6px;
-      margin: 4px 0 8px 0;
-      overflow: hidden;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .bar-fill {
-      height: 100%;
-      transition: width 0.2s ease;
-    }
-
-    .shield-fill { background: linear-gradient(90deg, #00d2ff, #0072ff); }
-    .hull-fill { background: linear-gradient(90deg, #00f2fe, #4facfe); }
-    .p2-shield-fill { background: linear-gradient(90deg, #ff416c, #ff4b2b); }
-
-    .menu-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(3, 7, 18, 0.92);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 100;
-      backdrop-filter: blur(8px);
-    }
-
-    .menu-card {
-      background: rgba(13, 24, 48, 0.95);
-      border: 2px solid #00f0ff;
-      border-radius: 12px;
-      padding: 30px;
-      width: 90%;
-      max-width: 450px;
-      text-align: center;
-      box-shadow: 0 0 30px rgba(0, 240, 255, 0.4);
-    }
-
-    h1 {
-      font-size: 2.5rem;
-      letter-spacing: 4px;
-      color: #00f0ff;
-      text-shadow: 0 0 15px #00f0ff;
-      margin-bottom: 20px;
-    }
-
-    .btn {
-      width: 100%;
-      padding: 12px 20px;
-      margin: 8px 0;
-      background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(0, 114, 255, 0.4));
-      border: 1px solid #00f0ff;
-      color: #fff;
-      font-weight: bold;
-      letter-spacing: 1.5px;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .btn:hover {
-      background: linear-gradient(135deg, rgba(0, 240, 255, 0.5), rgba(0, 114, 255, 0.7));
-      box-shadow: 0 0 15px #00f0ff;
-      transform: translateY(-2px);
-    }
-
-    input[type="text"] {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      background: rgba(15, 23, 42, 0.8);
-      border: 1px solid #00f0ff;
-      color: #00f0ff;
-      text-align: center;
-      font-size: 1.2rem;
-      letter-spacing: 2px;
-      border-radius: 6px;
-      outline: none;
-    }
-
-    /* CONTROLES TÁCTILES MÓVILES */
-    .touch-controls {
-      position: absolute;
-      bottom: 20px;
-      left: 0;
-      width: 100%;
-      height: 150px;
-      pointer-events: none;
-      display: flex;
-      justify-content: space-between;
-      padding: 0 20px;
-      z-index: 20;
-    }
-
-    .joystick-zone {
-      width: 130px;
-      height: 130px;
-      background: rgba(0, 240, 255, 0.1);
-      border: 2px solid rgba(0, 240, 255, 0.4);
-      border-radius: 50%;
-      position: relative;
-      pointer-events: auto;
-      touch-action: none;
-    }
-
-    .joystick-knob {
-      width: 50px;
-      height: 50px;
-      background: #00f0ff;
-      border-radius: 50%;
-      position: absolute;
-      top: 40px;
-      left: 40px;
-      box-shadow: 0 0 15px #00f0ff;
-      pointer-events: none;
-    }
-
-    .fire-btn {
-      width: 90px;
-      height: 90px;
-      background: radial-gradient(circle, rgba(255, 65, 108, 0.8), rgba(255, 75, 43, 0.6));
-      border: 2px solid #ff416c;
-      border-radius: 50%;
-      pointer-events: auto;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-weight: bold;
-      color: #fff;
-      box-shadow: 0 0 20px rgba(255, 65, 108, 0.6);
-      touch-action: manipulation;
-    }
-
-    .fire-btn:active {
-      transform: scale(0.92);
-    }
-  </style>
+        /* Touch Control Styling */
+        .joystick-zone {
+            touch-action: none;
+            user-select: none;
+        }
+        
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(3, 7, 18, 0.8); }
+        ::-webkit-scrollbar-thumb { background: rgba(0, 240, 255, 0.4); border-radius: 3px; }
+    </style>
 </head>
-<body>
+<body class="h-full w-full relative text-slate-100 flex flex-col justify-between overflow-hidden">
 
-<div id="game-container">
-  <canvas id="gameCanvas"></canvas>
+    <!-- CANVAS RENDERING ENGINE CONTAINER -->
+    <div id="canvasContainer" class="absolute inset-0 z-0 bg-slate-950">
+        <canvas id="gameCanvas" class="w-full h-full block"></canvas>
+    </div>
 
-  <!-- HUD EN JUEGO -->
-  <div class="ui-layer">
-    <div class="hud-top">
-      <div class="status-panel">
-        <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
-          <span>ESCUDO</span><span id="shield-val">100%</span>
+    <!-- UPPER NAVIGATION BAR -->
+    <header class="relative z-20 w-full p-3 sm:p-4 flex justify-between items-center pointer-events-none">
+        <div class="flex items-center gap-3 pointer-events-auto cursor-pointer" onclick="switchView('menu')">
+            <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-void-cyan/10 border border-void-cyan flex items-center justify-center text-void-cyan text-lg sm:text-xl shadow-cyanGlow">
+                <i class="fa-solid fa-atom"></i>
+            </div>
+            <div>
+                <h1 class="text-base sm:text-xl font-extrabold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-void-cyan via-white to-void-blue">QUANTUM VOID</h1>
+                <p class="text-[9px] sm:text-xs text-void-cyan/70 tracking-widest uppercase font-mono">PEER-TO-PEER SPACE MMO</p>
+            </div>
         </div>
-        <div class="bar-container"><div id="shield-bar" class="bar-fill shield-fill" style="width:100%"></div></div>
+
+        <!-- ONLINE STATUS BAR -->
+        <div id="connectionBar" class="pointer-events-auto flex items-center gap-2 sm:gap-4 glass-panel px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-[10px] sm:text-xs font-mono">
+            <div class="flex items-center gap-2">
+                <span id="statusIndicator" class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span id="statusText" class="text-slate-300">P2P DIRECTO: LISTO</span>
+            </div>
+            <div class="h-4 w-px bg-void-cyan/30 hidden sm:block"></div>
+            <div class="text-amber-400 font-bold"><i class="fa-solid fa-coins mr-1"></i> <span id="globalCredits">15,000</span> CR</div>
+        </div>
+    </header>
+
+    <!-- UI SCREENS WRAPPER -->
+    <main class="relative z-10 flex-1 flex items-center justify-center p-3 sm:p-4">
         
-        <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
-          <span>CASCO</span><span id="hull-val">100%</span>
+        <!-- ================= MAIN MENU VIEW ================= -->
+        <div id="view-menu" class="ui-screen max-w-4xl w-full grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6 items-center">
+            <div class="md:col-span-7 glass-panel p-6 sm:p-8 rounded-2xl border-l-4 border-l-void-cyan space-y-4 sm:space-y-6">
+                <div>
+                    <div class="text-void-cyan text-[10px] sm:text-xs font-mono uppercase tracking-widest mb-1"><i class="fa-solid fa-satellite-dish mr-1"></i> RED P2P INSTANTÁNEA</div>
+                    <h2 class="text-2xl sm:text-3xl font-black text-white tracking-wide">COMANDO CENTRAL</h2>
+                    <p class="text-slate-400 text-xs sm:text-sm mt-1">Combate espacial multijugador sin servidores. Conéctate con cualquier dispositivo introduciendo un código único.</p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                    <button onclick="startSinglePlayer()" class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-void-cyan to-void-blue text-slate-950 font-black tracking-wider text-xs sm:text-sm hover:brightness-125 transition shadow-cyanGlow flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-play text-base sm:text-lg"></i> JUGAR SOLO (IA)
+                    </button>
+                    <button onclick="switchView('multiplayer')" class="w-full py-3 px-4 rounded-xl bg-slate-900 border border-void-cyan/50 text-void-cyan font-bold text-xs sm:text-sm hover:bg-void-cyan/10 transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-network-wired"></i> MULTIJUGADOR P2P
+                    </button>
+                    <button onclick="switchView('hangar')" class="w-full py-3 px-4 rounded-xl bg-slate-900/80 border border-slate-700 hover:border-void-cyan text-slate-200 font-bold text-xs sm:text-sm hover:bg-slate-800 transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-shuttle-space"></i> HANGAR Y MEJORAS
+                    </button>
+                    <button onclick="switchView('shop')" class="w-full py-3 px-4 rounded-xl bg-slate-900/80 border border-slate-700 hover:border-amber-400 text-slate-200 font-bold text-xs sm:text-sm hover:bg-slate-800 transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-cart-shopping text-amber-400"></i> ASTILLERO (28 NAVES)
+                    </button>
+                    <button onclick="switchView('stats')" class="w-full py-3 px-4 rounded-xl bg-slate-900/80 border border-slate-700 hover:border-slate-500 text-slate-300 font-semibold text-xs hover:bg-slate-800 transition flex items-center justify-center gap-2 sm:col-span-2">
+                        <i class="fa-solid fa-chart-line"></i> ESTADÍSTICAS DE COMBATE
+                    </button>
+                </div>
+            </div>
+
+            <!-- SHIP QUICK CARD -->
+            <div class="md:col-span-5 glass-panel p-5 rounded-2xl flex flex-col items-center text-center space-y-3">
+                <div class="text-[10px] font-mono text-void-cyan uppercase">NAVE EQUIPADA</div>
+                <div class="relative w-32 h-32 sm:w-40 sm:h-40 flex items-center justify-center">
+                    <div class="absolute inset-0 rounded-full border border-dashed border-void-cyan/30 animate-spin-slow"></div>
+                    <canvas id="menuShipCanvas" width="140" height="140"></canvas>
+                </div>
+                <div>
+                    <h3 id="activeShipName" class="text-lg sm:text-xl font-bold text-white">ORGANIC ALIEN HARVESTER</h3>
+                    <p id="activeShipClass" class="text-xs text-void-cyan">Clase Bio-Alienígena</p>
+                </div>
+                <div class="w-full space-y-2 text-xs">
+                    <div class="flex justify-between text-slate-400"><span>Escudo:</span><span id="activeShipShield" class="text-void-cyan font-bold">120 HP</span></div>
+                    <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden"><div id="barShield" class="h-full bg-void-cyan w-full"></div></div>
+                    <div class="flex justify-between text-slate-400"><span>Potencia Laser:</span><span id="activeShipDPS" class="text-amber-400 font-bold">35 DPS</span></div>
+                    <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden"><div id="barDPS" class="h-full bg-amber-400 w-2/3"></div></div>
+                </div>
+            </div>
         </div>
-        <div class="bar-container"><div id="hull-bar" class="bar-fill hull-fill" style="width:100%"></div></div>
+
+        <!-- ================= P2P MULTIPLAYER ROOMS ================= -->
+        <div id="view-multiplayer" class="ui-screen max-w-3xl w-full hidden glass-panel p-5 sm:p-6 rounded-2xl space-y-5">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <div>
+                    <h2 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-2"><i class="fa-solid fa-wifi text-void-cyan"></i> MULTIJUGADOR DIRECTO P2P (PEERJS)</h2>
+                    <p class="text-xs text-slate-400">Sin servidores ni hosting. Un jugador crea el código y el otro se une instantáneamente.</p>
+                </div>
+                <button onclick="switchView('menu')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300">
+                    <i class="fa-solid fa-arrow-left mr-1"></i> VOLVER
+                </button>
+            </div>
+
+            <!-- ROOM CREATION & JOIN -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- HOST CREATION -->
+                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 space-y-3">
+                    <h3 class="text-sm font-bold text-void-cyan"><i class="fa-solid fa-tower-broadcast mr-1"></i> 1. OPULIS ANFITRION (CREAR SALA)</h3>
+                    <p class="text-[11px] text-slate-400">Genera tu código de sala WebRTC listo para compartir.</p>
+                    <button onclick="createP2PRoom()" class="w-full py-2.5 rounded-lg bg-void-cyan text-slate-950 font-black text-xs hover:brightness-110 shadow-cyanGlow">
+                        GENERAR CÓDIGO DE SALA
+                    </button>
+                    <div id="hostCodeDisplay" class="hidden bg-slate-950 border border-void-cyan/40 rounded-lg p-3 text-center space-y-1">
+                        <div class="text-[10px] text-slate-400">CÓDIGO DE SALA:</div>
+                        <div id="generatedRoomCode" class="text-2xl font-extrabold text-void-cyan font-mono tracking-wider">------</div>
+                        <div class="text-[10px] text-emerald-400 animate-pulse">Esperando a que se una el Jugador 2...</div>
+                    </div>
+                </div>
+
+                <!-- GUEST JOIN -->
+                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 space-y-3">
+                    <h3 class="text-sm font-bold text-amber-400"><i class="fa-solid fa-plug mr-1"></i> 2. INVITADO (UNIRSE A SALA)</h3>
+                    <p class="text-[11px] text-slate-400">Pega el código de 6 caracteres del anfitrión.</p>
+                    <input type="text" id="joinRoomCodeInput" placeholder="EJ: QV-8931" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 font-mono tracking-wider uppercase focus:border-amber-400 outline-none">
+                    <button onclick="joinP2PRoom()" class="w-full py-2.5 rounded-lg bg-amber-400 text-slate-950 font-black text-xs hover:brightness-110">
+                        CONECTAR A SALA
+                    </button>
+                </div>
+            </div>
+
+            <!-- ROOM INFOBAR -->
+            <div id="p2pStatusLog" class="bg-slate-950 p-3 rounded-xl border border-slate-800 font-mono text-xs text-slate-400 min-h-16 flex items-center justify-center text-center">
+                Elige "Crear Sala" para alojar la partida o introduce un código para unirte.
+            </div>
+        </div>
+
+        <!-- ================= HANGAR / SHIP FITTING ================= -->
+        <div id="view-hangar" class="ui-screen max-w-4xl w-full hidden glass-panel p-5 sm:p-6 rounded-2xl space-y-5">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <div>
+                    <h2 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-2"><i class="fa-solid fa-shuttle-space text-void-cyan"></i> HANGAR Y MEJORAS</h2>
+                    <p class="text-xs text-slate-400">Selecciona tu nave activa y mejora sus especificaciones de combate.</p>
+                </div>
+                <button onclick="switchView('menu')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300">VOLVER</button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="space-y-2">
+                    <h3 class="text-xs font-mono text-void-cyan uppercase">Flota Poseída</h3>
+                    <div id="ownedShipsList" class="space-y-2 max-h-72 overflow-y-auto pr-1"></div>
+                </div>
+
+                <div class="md:col-span-2 bg-slate-900/60 p-5 rounded-xl border border-slate-800 space-y-5">
+                    <div class="flex items-center gap-4">
+                        <canvas id="hangarShipCanvas" width="120" height="120" class="bg-slate-950 rounded-xl border border-slate-800"></canvas>
+                        <div class="space-y-1">
+                            <h3 id="hangarShipName" class="text-xl font-black text-white">ALIEN HARVESTER</h3>
+                            <p id="hangarShipDesc" class="text-xs text-slate-400">Nave alienígena orgánica provista de garras de ataque frontal.</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 border-t border-slate-800 pt-4">
+                        <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-2">
+                            <div class="flex justify-between text-xs"><span class="text-slate-400">Escudo</span><span id="lvlShield" class="text-void-cyan font-bold">Nvl 1</span></div>
+                            <button onclick="upgradeStat('shield')" class="w-full py-1.5 bg-slate-800 hover:bg-void-cyan hover:text-slate-950 text-void-cyan rounded font-bold text-xs transition">Mejorar (1,000 CR)</button>
+                        </div>
+                        <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-2">
+                            <div class="flex justify-between text-xs"><span class="text-slate-400">Cañones</span><span id="lvlLaser" class="text-amber-400 font-bold">Nvl 1</span></div>
+                            <button onclick="upgradeStat('laser')" class="w-full py-1.5 bg-slate-800 hover:bg-amber-400 hover:text-slate-950 text-amber-400 rounded font-bold text-xs transition">Mejorar (1,500 CR)</button>
+                        </div>
+                        <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-2">
+                            <div class="flex justify-between text-xs"><span class="text-slate-400">Propulsor</span><span id="lvlSpeed" class="text-emerald-400 font-bold">Nvl 1</span></div>
+                            <button onclick="upgradeStat('speed')" class="w-full py-1.5 bg-slate-800 hover:bg-emerald-400 hover:text-slate-950 text-emerald-400 rounded font-bold text-xs transition">Mejorar (1,200 CR)</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= SHIP STORE (28 ARCHETYPES) ================= -->
+        <div id="view-shop" class="ui-screen max-w-5xl w-full hidden glass-panel p-5 sm:p-6 rounded-2xl space-y-5">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <div>
+                    <h2 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-2"><i class="fa-solid fa-cart-shopping text-amber-400"></i> ASTILLERO (CATÁLOGO DE 28 NAVES)</h2>
+                    <p class="text-xs text-slate-400">Explora la flota completa con los 4 modelos principales de combate y sus 28 variantes.</p>
+                </div>
+                <button onclick="switchView('menu')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300">VOLVER</button>
+            </div>
+
+            <div id="shopGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-h-[60vh] overflow-y-auto pr-1">
+                <!-- 28 Ships Generated via JS -->
+            </div>
+        </div>
+
+        <!-- ================= STATS VIEW ================= -->
+        <div id="view-stats" class="ui-screen max-w-3xl w-full hidden glass-panel p-5 sm:p-6 rounded-2xl space-y-5">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h2 class="text-xl sm:text-2xl font-bold text-white"><i class="fa-solid fa-chart-pie text-void-cyan mr-2"></i>REGISTRO DE COMBATE</h2>
+                <button onclick="switchView('menu')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300">VOLVER</button>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-center">
+                    <div class="text-2xl font-bold text-void-cyan" id="statKills">0</div>
+                    <div class="text-xs text-slate-400">Naves Destruidas</div>
+                </div>
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-center">
+                    <div class="text-2xl font-bold text-rose-500" id="statDeaths">0</div>
+                    <div class="text-xs text-slate-400">Derrotas</div>
+                </div>
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-center">
+                    <div class="text-2xl font-bold text-amber-400" id="statAccuracy">0%</div>
+                    <div class="text-xs text-slate-400">Puntería Laser</div>
+                </div>
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-center">
+                    <div class="text-2xl font-bold text-emerald-400" id="statCreditsEarned">0</div>
+                    <div class="text-xs text-slate-400">Total Ganado</div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- IN-GAME HUD OVERLAY -->
+    <div id="gameHud" class="fixed inset-0 z-20 pointer-events-none hidden flex flex-col justify-between p-4 sm:p-6">
+        <!-- TOP HUD -->
+        <div class="flex justify-between items-start">
+            <div class="glass-panel p-3 sm:p-4 rounded-xl w-60 sm:w-72 space-y-2 pointer-events-auto">
+                <div class="flex justify-between items-center text-xs font-mono">
+                    <span class="text-void-cyan font-bold"><i class="fa-solid fa-shield-halved mr-1"></i> ESCUDOS:</span>
+                    <span id="hudShieldText" class="text-white">100 / 100</span>
+                </div>
+                <div class="w-full h-2.5 bg-slate-950 rounded-full border border-slate-800 overflow-hidden">
+                    <div id="hudShieldBar" class="h-full bg-void-cyan transition-all duration-150 w-full"></div>
+                </div>
+
+                <div class="flex justify-between items-center text-xs font-mono pt-1">
+                    <span class="text-rose-500 font-bold"><i class="fa-solid fa-heart mr-1"></i> CASCO:</span>
+                    <span id="hudHullText" class="text-white">100 / 100</span>
+                </div>
+                <div class="w-full h-2 bg-slate-950 rounded-full border border-slate-800 overflow-hidden">
+                    <div id="hudHullBar" class="h-full bg-rose-500 transition-all duration-150 w-full"></div>
+                </div>
+            </div>
+
+            <div class="glass-panel p-3 sm:p-4 rounded-xl text-right font-mono space-y-1">
+                <div class="text-[10px] sm:text-xs text-slate-400">SECTOR DE COMBATE</div>
+                <div id="hudRoomCode" class="text-sm sm:text-lg font-bold text-void-cyan">P2P-SOLO</div>
+                <div class="text-xs text-amber-400"><i class="fa-solid fa-crosshairs mr-1"></i> BAJAS: <span id="hudScore">0</span></div>
+            </div>
+        </div>
+
+        <!-- MOBILE / TOUCH CONTROLS OVERLAY -->
+        <div id="touchControls" class="pointer-events-auto flex justify-between items-end pb-2 px-2 select-none">
+            <!-- Left Virtual Joystick Zone -->
+            <div id="joystickZone" class="w-32 h-32 sm:w-40 sm:h-40 rounded-full border-2 border-void-cyan/30 bg-slate-950/40 relative flex items-center justify-center joystick-zone">
+                <div id="joystickKnob" class="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-void-cyan/40 border border-void-cyan shadow-cyanGlow absolute"></div>
+            </div>
+
+            <!-- Right Fire Button -->
+            <button id="mobileFireBtn" class="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-tr from-rose-600 to-amber-400 text-slate-950 font-black text-sm sm:text-base border-2 border-amber-300 shadow-dangerGlow flex items-center justify-center active:scale-95 transition">
+                FUEGO
+            </button>
+        </div>
+
+        <!-- BOTTOM EXIT HINT -->
+        <div class="flex justify-between items-end">
+            <div class="glass-panel px-3 py-1.5 rounded-xl text-[10px] sm:text-xs font-mono text-slate-400 hidden sm:block">
+                [TECLADO] W/A/S/D = Mover | ESPACIO = Disparar | ESC = Salir
+            </div>
+            <button onclick="exitBattle()" class="pointer-events-auto px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl glass-panel-danger text-rose-400 font-bold text-xs hover:bg-rose-900/50 transition">
+                <i class="fa-solid fa-right-from-bracket mr-1"></i> RETIRARSE
+            </button>
+        </div>
+    </div>
+
+    <!-- MAIN ENGINE & P2P CONTROLLER -->
+    <script>
+        // ================= 28 SHIPS DATABASE =================
+        const SHIP_MODELS = ['alien_bio', 'crimson_blade', 'stealth_interceptor', 'triwing_heavy'];
         
-        <div style="font-size:0.9rem; color:#00f0ff; margin-top:4px;">
-          CRÉDITOS: <span id="credits-val">0</span>
-        </div>
-      </div>
-
-      <div class="status-panel" id="p2-panel" style="display:none; border-color:#ff416c;">
-        <div style="color:#ff416c; font-weight:bold; margin-bottom:4px;">RIVAL (J2)</div>
-        <div class="bar-container"><div id="p2-hull-bar" class="bar-fill p2-shield-fill" style="width:100%"></div></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- CONTROLES TÁCTILES -->
-  <div class="touch-controls" id="touch-layer">
-    <div class="joystick-zone" id="joystick">
-      <div class="joystick-knob" id="knob"></div>
-    </div>
-    <div class="fire-btn" id="btn-fire">FUEGO</div>
-  </div>
-
-  <!-- MENÚ PRINCIPAL -->
-  <div class="menu-overlay interactive" id="main-menu">
-    <div class="menu-card">
-      <h1>QUANTUM VOID</h1>
-      <p style="color:#94a3b8; margin-bottom:20px; font-size:0.9rem;">COMBATE ESPACIAL MULTIJUGADOR P2P</p>
-      
-      <button class="btn" onclick="startSinglePlayer()">MODO UN JUGADOR</button>
-      <button class="btn" onclick="showMultiplayerMenu()">MULTIJUGADOR P2P</button>
-      <button class="btn" onclick="alert('Usa las flechas/WASD para moverte y ESPACIO para disparar. En móviles usa los joysticks.')">CONTROLES</button>
-    </div>
-  </div>
-
-  <!-- MENÚ MULTIJUGADOR -->
-  <div class="menu-overlay interactive" id="mp-menu" style="display:none;">
-    <div class="menu-card">
-      <h2>SALA MULTIJUGADOR</h2>
-      <p style="color:#94a3b8; font-size:0.85rem; margin:10px 0;">Conéctate directamente con otro jugador mediante código de sala.</p>
-      
-      <button class="btn" onclick="createRoom()">CREAR SALA (HOST)</button>
-      
-      <hr style="border:0; border-top:1px solid rgba(0,240,255,0.2); margin:15px 0;">
-      
-      <input type="text" id="room-code-input" placeholder="CÓDIGO DE SALA" maxlength="6">
-      <button class="btn" onclick="joinRoom()">UNIRSE A SALA</button>
-      <button class="btn" style="background:transparent; border:none; color:#94a3b8;" onclick="hideMultiplayerMenu()">VOLVER</button>
-      
-      <div id="mp-status" style="margin-top:10px; font-size:0.85rem; color:#00f0ff;"></div>
-    </div>
-  </div>
-</div>
-
-<script>
-  // CONFIGURACIÓN Y ESTADO DEL JUEGO
-  const canvas = document.getElementById('gameCanvas');
-  const ctx = canvas.getContext('2d');
-
-  function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-  }
-  window.addEventListener('resize', resizeCanvas);
-  resizeCanvas();
-
-  let isMultiplayer = false;
-  let isHost = false;
-  let peer = null;
-  let conn = null;
-
-  let credits = parseInt(localStorage.getItem('qv_credits') || '500');
-  document.getElementById('credits-val').innerText = credits;
-
-  // JUGADORES
-  const player1 = {
-    x: canvas.width / 2,
-    y: canvas.height / 2,
-    vx: 0, vy: 0,
-    angle: 0,
-    shield: 100, maxShield: 100,
-    hull: 100, maxHull: 100,
-    shipType: 0,
-    radius: 24
-  };
-
-  const player2 = {
-    x: -1000, y: -1000,
-    angle: 0,
-    hull: 100, maxHull: 100,
-    active: false,
-    shipType: 1,
-    radius: 24
-  };
-
-  let bullets = [];
-  let enemies = [];
-  let particles = [];
-
-  // ENTRADAS DE CONTROL
-  const keys = {};
-  window.addEventListener('keydown', e => keys[e.code] = true);
-  window.addEventListener('keyup', e => keys[e.code] = false);
-
-  // JOYSTICK TÁCTIL
-  let touchVector = { x: 0, y: 0 };
-  const joystick = document.getElementById('joystick');
-  const knob = document.getElementById('knob');
-
-  joystick.addEventListener('touchstart', handleTouch);
-  joystick.addEventListener('touchmove', handleTouch);
-  joystick.addEventListener('touchend', () => {
-    touchVector = { x: 0, y: 0 };
-    knob.style.top = '40px';
-    knob.style.left = '40px';
-  });
-
-  function handleTouch(e) {
-    e.preventDefault();
-    const rect = joystick.getBoundingClientRect();
-    const touch = e.touches[0];
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    
-    let dx = touch.clientX - centerX;
-    let dy = touch.clientY - centerY;
-    const dist = Math.hypot(dx, dy);
-    const maxDist = rect.width / 2;
-
-    if (dist > maxDist) {
-      dx = (dx / dist) * maxDist;
-      dy = (dy / dist) * maxDist;
-    }
-
-    knob.style.left = (40 + dx) + 'px';
-    knob.style.top = (40 + dy) + 'px';
-    touchVector = { x: dx / maxDist, y: dy / maxDist };
-  }
-
-  document.getElementById('btn-fire').addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    shootBullet(player1, isHost ? 'p1' : 'p2');
-  });
-
-  // SISTEMA MULTIJUGADOR P2P
-  function showMultiplayerMenu() {
-    document.getElementById('main-menu').style.display = 'none';
-    document.getElementById('mp-menu').style.display = 'flex';
-  }
-
-  function hideMultiplayerMenu() {
-    document.getElementById('mp-menu').style.display = 'none';
-    document.getElementById('main-menu').style.display = 'flex';
-  }
-
-  function createRoom() {
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    document.getElementById('mp-status').innerText = 'Generando sala: ' + code + '...';
-    
-    peer = new Peer('qv-' + code);
-
-    peer.on('open', () => {
-      document.getElementById('mp-status').innerText = 'SALA CREADA: ' + code + '\nEsperando al Jugador 2...';
-      isHost = true;
-      isMultiplayer = true;
-    });
-
-    peer.on('connection', (c) => {
-      conn = c;
-      setupConnection();
-      document.getElementById('mp-status').innerText = '¡Jugador 2 Conectado!';
-      setTimeout(() => {
-        document.getElementById('mp-menu').style.display = 'none';
-        document.getElementById('p2-panel').style.display = 'block';
-        player2.active = true;
-      }, 1000);
-    });
-
-    peer.on('error', err => {
-      document.getElementById('mp-status').innerText = 'Error al crear sala: ' + err.type;
-    });
-  }
-
-  function joinRoom() {
-    const code = document.getElementById('room-code-input').value.trim();
-    if (code.length !== 6) {
-      alert('Introduce un código de sala válido de 6 dígitos.');
-      return;
-    }
-
-    document.getElementById('mp-status').innerText = 'Conectando a la sala...';
-    peer = new Peer();
-
-    peer.on('open', () => {
-      conn = peer.connect('qv-' + code);
-      setupConnection();
-    });
-
-    peer.on('error', err => {
-      document.getElementById('mp-status').innerText = 'Error de conexión: Sala no encontrada';
-    });
-  }
-
-  function setupConnection() {
-    conn.on('open', () => {
-      isMultiplayer = true;
-      document.getElementById('mp-status').innerText = '¡Conectado exitosamente!';
-      document.getElementById('mp-menu').style.display = 'none';
-      document.getElementById('p2-panel').style.display = 'block';
-      player2.active = true;
-    });
-
-    conn.on('data', (data) => {
-      if (data.type === 'SYNC') {
-        player2.x = data.x;
-        player2.y = data.y;
-        player2.angle = data.angle;
-        player2.hull = data.hull;
-        document.getElementById('p2-hull-bar').style.width = Math.max(0, player2.hull) + '%';
-      } else if (data.type === 'SHOOT') {
-        shootBullet(player2, isHost ? 'p2' : 'p1', false);
-      } else if (data.type === 'HIT') {
-        // Impacto reportado
-        takeDamage(player1, data.damage);
-      }
-    });
-  }
-
-  function startSinglePlayer() {
-    document.getElementById('main-menu').style.display = 'none';
-    spawnEnemies();
-  }
-
-  function spawnEnemies() {
-    for (let i = 0; i < 3; i++) {
-      enemies.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        vx: 0, vy: 0,
-        angle: 0,
-        hull: 40,
-        radius: 20
-      });
-    }
-  }
-
-  function shootBullet(shooter, owner, broadcast = true) {
-    const speed = 12;
-    bullets.push({
-      x: shooter.x + Math.cos(shooter.angle) * 30,
-      y: shooter.y + Math.sin(shooter.angle) * 30,
-      vx: Math.cos(shooter.angle) * speed,
-      vy: Math.sin(shooter.angle) * speed,
-      owner: owner,
-      life: 80
-    });
-
-    if (broadcast && isMultiplayer && conn) {
-      conn.send({ type: 'SHOOT' });
-    }
-  }
-
-  function takeDamage(target, amount) {
-    if (target.shield > 0) {
-      target.shield -= amount;
-      if (target.shield < 0) {
-        target.hull += target.shield;
-        target.shield = 0;
-      }
-    } else {
-      target.hull -= amount;
-    }
-
-    if (target.hull <= 0) {
-      createExplosion(target.x, target.y);
-      target.hull = 100;
-      target.shield = 100;
-      target.x = Math.random() * canvas.width;
-      target.y = Math.random() * canvas.height;
-    }
-  }
-
-  function createExplosion(x, y) {
-    for (let i = 0; i < 25; i++) {
-      particles.push({
-        x: x, y: y,
-        vx: (Math.random() - 0.5) * 8,
-        vy: (Math.random() - 0.5) * 8,
-        life: 30, color: ['#ff416c', '#00f0ff', '#ffffff'][Math.floor(Math.random() * 3)]
-      });
-    }
-  }
-
-  // DIBUJO DE NAVES PERSONALIZADAS SEGÚN TUS IMÁGENES
-  function drawShip(x, y, angle, type, color = '#00f0ff') {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(angle);
-
-    ctx.strokeStyle = color;
-    ctx.fillStyle = color;
-    ctx.lineWidth = 2;
-    ctx.shadowBlur = 10;
-    ctx.shadowColor = color;
-
-    ctx.beginPath();
-    if (type === 0) {
-      // Nave Estilo 1 (Roja/Gris de cuernos curva - Imagen 3)
-      ctx.moveTo(25, 0);
-      ctx.lineTo(-15, -20);
-      ctx.lineTo(-5, 0);
-      ctx.lineTo(-15, 20);
-    } else if (type === 1) {
-      // Nave Alien Insectoide (Imagen 2)
-      ctx.moveTo(30, 0);
-      ctx.lineTo(10, -15);
-      ctx.lineTo(-20, -25);
-      ctx.lineTo(-10, 0);
-      ctx.lineTo(-20, 25);
-      ctx.lineTo(10, 15);
-    } else if (type === 2) {
-      // Nave Interceptora Plata (Imagen 4)
-      ctx.moveTo(28, 0);
-      ctx.lineTo(-10, -18);
-      ctx.lineTo(-20, -10);
-      ctx.lineTo(-10, 0);
-      ctx.lineTo(-20, 10);
-      ctx.lineTo(-10, 18);
-    } else {
-      // Nave Caza Estrellado Naranja (Imagen 5)
-      ctx.moveTo(20, 0);
-      ctx.lineTo(-15, -25);
-      ctx.lineTo(-5, -5);
-      ctx.lineTo(-15, 25);
-    }
-    ctx.closePath();
-    ctx.stroke();
-    ctx.fill();
-
-    ctx.restore();
-  }
-
-  // LOOP PRINCIPAL DEL JUEGO
-  function update() {
-    // 1. Movimiento Jugador 1
-    let moveX = touchVector.x;
-    let moveY = touchVector.y;
-
-    if (keys['KeyW'] || keys['ArrowUp']) moveY = -1;
-    if (keys['KeyS'] || keys['ArrowDown']) moveY = 1;
-    if (keys['KeyA'] || keys['ArrowLeft']) moveX = -1;
-    if (keys['KeyD'] || keys['ArrowRight']) moveX = 1;
-
-    if (keys['Space']) {
-      if (!player1.lastShot || Date.now() - player1.lastShot > 200) {
-        shootBullet(player1, isHost ? 'p1' : 'p2');
-        player1.lastShot = Date.now();
-      }
-    }
-
-    player1.vx += moveX * 0.4;
-    player1.vy += moveY * 0.4;
-    player1.vx *= 0.95;
-    player1.vy *= 0.95;
-
-    player1.x += player1.vx;
-    player1.y += player1.vy;
-
-    if (Math.hypot(moveX, moveY) > 0.1) {
-      player1.angle = Math.atan2(moveY, moveX);
-    }
-
-    // Regeneración de Escudos
-    if (player1.shield < player1.maxShield) player1.shield += 0.05;
-
-    // Actualizar HUD local
-    document.getElementById('shield-bar').style.width = Math.max(0, player1.shield) + '%';
-    document.getElementById('hull-bar').style.width = Math.max(0, player1.hull) + '%';
-    document.getElementById('shield-val').innerText = Math.round(player1.shield) + '%';
-    document.getElementById('hull-val').innerText = Math.round(player1.hull) + '%';
-
-    // Sincronización P2P
-    if (isMultiplayer && conn && conn.open) {
-      conn.send({
-        type: 'SYNC',
-        x: player1.x,
-        y: player1.y,
-        angle: player1.angle,
-        hull: player1.hull
-      });
-    }
-
-    // 2. Proyectiles y Colisiones PvP
-    for (let i = bullets.length - 1; i >= 0; i--) {
-      let b = bullets[i];
-      b.x += b.vx;
-      b.y += b.vy;
-      b.life--;
-
-      // Impacto en Jugador 1
-      if (b.owner !== (isHost ? 'p1' : 'p2') && Math.hypot(b.x - player1.x, b.y - player1.y) < player1.radius) {
-        takeDamage(player1, 15);
-        createExplosion(b.x, b.y);
-        bullets.splice(i, 1);
-        continue;
-      }
-
-      if (b.life <= 0) bullets.splice(i, 1);
-    }
-
-    // 3. Partículas
-    for (let i = particles.length - 1; i >= 0; i--) {
-      let p = particles[i];
-      p.x += p.vx;
-      p.y += p.vy;
-      p.life--;
-      if (p.life <= 0) particles.splice(i, 1);
-    }
-  }
-
-  function render() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Fondo azul profundo estelar (Estilo Imagen 1)
-    let grad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 100, canvas.width/2, canvas.height/2, canvas.width);
-    grad.addColorStop(0, '#0a122c');
-    grad.addColorStop(1, '#020514');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Dibujar Estrellas
-    ctx.fillStyle = '#ffffff';
-    for (let i = 0; i < 50; i++) {
-      let sx = (i * 137.5) % canvas.width;
-      let sy = (i * 293.3) % canvas.height;
-      ctx.fillRect(sx, sy, (i % 3 === 0) ? 2 : 1, (i % 3 === 0) ? 2 : 1);
-    }
-
-    // Dibujar Jugador 1
-    drawShip(player1.x, player1.y, player1.angle, player1.shipType, '#00f0ff');
-
-    // Dibujar Jugador 2 (Rival Multijugador)
-    if (player2.active) {
-      drawShip(player2.x, player2.y, player2.angle, player2.shipType, '#ff416c');
-    }
-
-    // Dibujar Enemigos IA
-    enemies.forEach(e => drawShip(e.x, e.y, e.angle, 3, '#ff9900'));
-
-    // Dibujar Disparos
-    ctx.fillStyle = '#00f0ff';
-    bullets.forEach(b => {
-      ctx.beginPath();
-      ctx.arc(b.x, b.y, 3, 0, Math.PI * 2);
-      ctx.fill();
-    });
-
-    // Dibujar Explosiones
-    particles.forEach(p => {
-      ctx.fillStyle = p.color;
-      ctx.fillRect(p.x, p.y, 3, 3);
-    });
-  }
-
-  function loop() {
-    update();
-    render();
-    requestAnimationFrame(loop);
-  }
-
-  loop();
-</script>
+        const SHIPS_DATABASE = Array.from({ length: 28 }, (_, i) => {
+            const modelType = SHIP_MODELS[i % 4];
+            const names = [
+                "Bio-Harvester Prime", "Crimson Vanguard", "Shadow Stealth", "Tri-Wing Dominator",
+                "Xeno Claw", "Red Scythe", "Void Phantom", "Solar Flare",
+                "Apex Bio-Hornet", "Bloodfang Interceptor", "Obsidian Blade", "Inferno Triad",
+                "Abyssal Leviathan", "Sanguine Dread", "Spectre Nova", "Omega Tri-Wing",
+                "Bio-Venom Destroyer", "Crimson Falcon", "Ghost Razor", "Titan Tri-Wing",
+                "Hive Swarm", "Ruby Reaper", "Nightstalker", "Supernova Wing",
+                "Nebula Crawler", "Scarlet Crusader", "Eclipse Phantom", "Hyperion Triad"
+            ];
+            return {
+                id: `ship_${i + 1}`,
+                name: names[i] || `Quantum Ship MK-${i+1}`,
+                model: modelType,
+                price: i === 0 ? 0 : 1500 * i,
+                shield: 100 + (i * 15),
+                dps: 20 + (i * 5),
+                speed: 5 + (i * 0.15)
+            };
+        });
+
+        // ================= GAME STATE & PERSISTENCE =================
+        let playerData = {
+            credits: 15000,
+            ownedShips: ['ship_1'],
+            activeShipId: 'ship_1',
+            upgrades: { shield: 1, laser: 1, speed: 1 },
+            stats: { kills: 0, deaths: 0, shotsFired: 0, shotsHit: 0, creditsEarned: 0 }
+        };
+
+        function loadPlayerData() {
+            const saved = localStorage.getItem('qv_p2p_save');
+            if (saved) {
+                try { playerData = Object.assign(playerData, JSON.parse(saved)); } catch(e){}
+            }
+            updateCreditDisplays();
+        }
+
+        function savePlayerData() {
+            localStorage.setItem('qv_p2p_save', JSON.stringify(playerData));
+            updateCreditDisplays();
+        }
+
+        function updateCreditDisplays() {
+            document.getElementById('globalCredits').innerText = playerData.credits.toLocaleString();
+        }
+
+        // ================= CANVAS ENGINE & GRAPHICS =================
+        let canvas, ctx;
+        let isGameRunning = false;
+        let keys = {};
+        
+        // Touch Joystick State
+        let joystickActive = false;
+        let joystickVector = { x: 0, y: 0 };
+        let touchFiring = false;
+
+        // Entities
+        let localPlayer = null;
+        let remotePlayer = null;
+        let projectiles = [];
+        let particles = [];
+        let aiEnemies = [];
+
+        // P2P WebRTC State
+        let peer = null;
+        let p2pConn = null;
+        let isHost = false;
+        let p2pRoomCode = "SOLO";
+
+        window.onload = function() {
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d');
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            loadPlayerData();
+            renderActiveShipPreview();
+            populateShopGrid();
+            populateOwnedShipsList();
+            setupTouchEvents();
+
+            window.addEventListener('keydown', e => { keys[e.code] = true; });
+            window.addEventListener('keyup', e => { keys[e.code] = false; });
+
+            requestAnimationFrame(ambientLoop);
+        };
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        function switchView(viewId) {
+            document.querySelectorAll('.ui-screen').forEach(el => el.classList.add('hidden'));
+            if (viewId !== 'game') {
+                const target = document.getElementById(`view-${viewId}`);
+                if (target) target.classList.remove('hidden');
+            }
+        }
+
+        // ================= TOUCH CONTROLS SYSTEM =================
+        function setupTouchEvents() {
+            const joystickZone = document.getElementById('joystickZone');
+            const knob = document.getElementById('joystickKnob');
+            const fireBtn = document.getElementById('mobileFireBtn');
+
+            function handleJoystickMove(touch) {
+                const rect = joystickZone.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                const deltaX = touch.clientX - centerX;
+                const deltaY = touch.clientY - centerY;
+                const dist = Math.hypot(deltaX, deltaY);
+                const maxRadius = rect.width / 2;
+
+                const angle = Math.atan2(deltaY, deltaX);
+                const clampedDist = Math.min(dist, maxRadius);
+
+                joystickVector.x = (Math.cos(angle) * clampedDist) / maxRadius;
+                joystickVector.y = (Math.sin(angle) * clampedDist) / maxRadius;
+
+                knob.style.transform = `translate(${Math.cos(angle) * clampedDist}px, ${Math.sin(angle) * clampedDist}px)`;
+            }
+
+            joystickZone.addEventListener('touchstart', e => {
+                e.preventDefault();
+                joystickActive = true;
+                handleJoystickMove(e.touches[0]);
+            });
+
+            window.addEventListener('touchmove', e => {
+                if (joystickActive && e.touches.length > 0) {
+                    handleJoystickMove(e.touches[0]);
+                }
+            });
+
+            window.addEventListener('touchend', e => {
+                if (e.touches.length === 0) {
+                    joystickActive = false;
+                    joystickVector = { x: 0, y: 0 };
+                    knob.style.transform = 'translate(0px, 0px)';
+                }
+            });
+
+            fireBtn.addEventListener('touchstart', e => {
+                e.preventDefault();
+                touchFiring = true;
+            });
+            fireBtn.addEventListener('touchend', e => {
+                e.preventDefault();
+                touchFiring = false;
+            });
+        }
+
+        // ================= P2P PEERJS NETWORKING =================
+        function createP2PRoom() {
+            const code = 'QV-' + Math.floor(1000 + Math.random() * 9000);
+            document.getElementById('p2pStatusLog').innerText = "Iniciando nodo PeerJS Anfitrión...";
+
+            peer = new Peer(code);
+            peer.on('open', id => {
+                isHost = true;
+                p2pRoomCode = id;
+                document.getElementById('hostCodeDisplay').classList.remove('hidden');
+                document.getElementById('generatedRoomCode').innerText = id;
+                document.getElementById('p2pStatusLog').innerText = `Sala lista. Comparte el código ${id} con otro jugador.`;
+            });
+
+            peer.on('connection', conn => {
+                p2pConn = conn;
+                setupP2PDataHandlers();
+                document.getElementById('p2pStatusLog').innerText = "¡Jugador 2 conectado! Iniciando combate...";
+                setTimeout(() => { startP2PBattle(); }, 1000);
+            });
+
+            peer.on('error', err => {
+                document.getElementById('p2pStatusLog').innerText = "Error P2P: " + err.message;
+            });
+        }
+
+        function joinP2PRoom() {
+            const code = document.getElementById('joinRoomCodeInput').value.trim().toUpperCase();
+            if (!code) return alert("Introduce un código de sala válido.");
+
+            document.getElementById('p2pStatusLog').innerText = `Conectando a la sala ${code}...`;
+            peer = new Peer();
+
+            peer.on('open', () => {
+                p2pConn = peer.connect(code);
+                setupP2PDataHandlers();
+            });
+
+            peer.on('error', err => {
+                document.getElementById('p2pStatusLog').innerText = "No se pudo conectar a la sala: " + err.message;
+            });
+        }
+
+        function setupP2PDataHandlers() {
+            p2pConn.on('open', () => {
+                document.getElementById('p2pStatusLog').innerText = "¡Conexión establecida! Cargando mapa...";
+                if (!isHost) setTimeout(() => { startP2PBattle(); }, 1000);
+            });
+
+            p2pConn.on('data', data => {
+                if (data.type === 'PLAYER_SYNC') {
+                    remotePlayer = data.player;
+                } else if (data.type === 'FIRE_BULLET') {
+                    // En el cliente receptor, el proyectil pertenece al jugador remoto.
+                    // Se copia para no modificar el objeto enviado por PeerJS.
+                    projectiles.push({ ...data.bullet, owner: 'remote' });
+                } else if (data.type === 'PLAYER_HIT') {
+                    // El jugador remoto ha confirmado un impacto contra nuestra nave.
+                    if (localPlayer && localPlayer.hull > 0) {
+                        applyPlayerDamage(data.damage);
+                    }
+                }
+            });
+
+            p2pConn.on('close', () => {
+                alert("El otro jugador se ha desconectado.");
+                exitBattle();
+            });
+        }
+
+        function startP2PBattle() {
+            startBattle(p2pRoomCode);
+        }
+
+        // Aplica el daño recibido a la nave local, respetando primero los escudos.
+        function applyPlayerDamage(damage) {
+            if (!localPlayer || localPlayer.hull <= 0) return;
+
+            let remainingDamage = Math.max(0, Number(damage) || 0);
+            const shieldDamage = Math.min(localPlayer.shield, remainingDamage);
+            localPlayer.shield -= shieldDamage;
+            remainingDamage -= shieldDamage;
+
+            if (remainingDamage > 0) {
+                localPlayer.hull = Math.max(0, localPlayer.hull - remainingDamage);
+            }
+
+            if (localPlayer.hull <= 0) {
+                localPlayer.hull = 0;
+                playerData.stats.deaths++;
+                createExplosion(localPlayer.x, localPlayer.y, '#ff0055');
+            }
+        }
+
+        function startSinglePlayer() {
+            isHost = true;
+            p2pRoomCode = "SOLO";
+            startBattle("SOLO");
+        }
+
+        // ================= GAME ENGINE LOOP =================
+        function startBattle(roomCode) {
+            switchView('game');
+            document.getElementById('gameHud').classList.remove('hidden');
+            document.getElementById('hudRoomCode').innerText = roomCode;
+
+            const shipDef = SHIPS_DATABASE.find(s => s.id === playerData.activeShipId);
+            
+            localPlayer = {
+                id: 'local',
+                x: isHost ? canvas.width * 0.3 : canvas.width * 0.7,
+                y: canvas.height / 2,
+                vx: 0, vy: 0,
+                angle: 0,
+                model: shipDef.model,
+                shieldMax: shipDef.shield * (1 + playerData.upgrades.shield * 0.2),
+                shield: shipDef.shield * (1 + playerData.upgrades.shield * 0.2),
+                hullMax: 100,
+                hull: 100,
+                dps: shipDef.dps * (1 + playerData.upgrades.laser * 0.2),
+                speed: shipDef.speed * (1 + playerData.upgrades.speed * 0.15),
+                score: 0,
+                lastShot: 0
+            };
+
+            projectiles = [];
+            particles = [];
+            aiEnemies = [];
+
+            if (isHost && roomCode === "SOLO") {
+                spawnAiEnemy();
+                spawnAiEnemy();
+            }
+
+            isGameRunning = true;
+            requestAnimationFrame(gameLoop);
+        }
+
+        function spawnAiEnemy() {
+            aiEnemies.push({
+                id: 'ai_' + Math.random(),
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                vx: 0, vy: 0,
+                angle: Math.random() * Math.PI * 2,
+                model: 'stealth_interceptor',
+                shield: 80,
+                hull: 80,
+                lastShot: 0
+            });
+        }
+
+        function exitBattle() {
+            isGameRunning = false;
+            if (peer) { peer.destroy(); peer = null; p2pConn = null; }
+            document.getElementById('gameHud').classList.add('hidden');
+            switchView('menu');
+            savePlayerData();
+        }
+
+        function gameLoop() {
+            if (!isGameRunning) return;
+
+            // Draw Dynamic Navy Blue Deep Space Background
+            drawSpaceBackground();
+
+            // Local Player Physics
+            if (localPlayer && localPlayer.hull > 0) {
+                // Keyboard Controls
+                if (keys['KeyA'] || keys['ArrowLeft']) localPlayer.angle -= 0.07;
+                if (keys['KeyD'] || keys['ArrowRight']) localPlayer.angle += 0.07;
+
+                if (keys['KeyW'] || keys['ArrowUp']) {
+                    localPlayer.vx += Math.cos(localPlayer.angle) * (localPlayer.speed * 0.08);
+                    localPlayer.vy += Math.sin(localPlayer.angle) * (localPlayer.speed * 0.08);
+                    createEngineParticle(localPlayer);
+                }
+
+                // Touch Joystick Steering & Thrust
+                if (joystickActive) {
+                    localPlayer.angle = Math.atan2(joystickVector.y, joystickVector.x);
+                    const mag = Math.hypot(joystickVector.x, joystickVector.y);
+                    localPlayer.vx += Math.cos(localPlayer.angle) * (localPlayer.speed * 0.08 * mag);
+                    localPlayer.vy += Math.sin(localPlayer.angle) * (localPlayer.speed * 0.08 * mag);
+                    createEngineParticle(localPlayer);
+                }
+
+                // Drag & Bounds
+                localPlayer.vx *= 0.98; localPlayer.vy *= 0.98;
+                localPlayer.x += localPlayer.vx; localPlayer.y += localPlayer.vy;
+
+                if (localPlayer.x < 0) localPlayer.x = canvas.width;
+                if (localPlayer.x > canvas.width) localPlayer.x = 0;
+                if (localPlayer.y < 0) localPlayer.y = canvas.height;
+                if (localPlayer.y > canvas.height) localPlayer.y = 0;
+
+                // Firing
+                if (localPlayer.hull > 0 &&
+                    (keys['Space'] || touchFiring) && Date.now() - localPlayer.lastShot > 180) {
+                    localPlayer.lastShot = Date.now();
+                    playerData.stats.shotsFired++;
+                    const bullet = {
+                        x: localPlayer.x + Math.cos(localPlayer.angle) * 22,
+                        y: localPlayer.y + Math.sin(localPlayer.angle) * 22,
+                        vx: Math.cos(localPlayer.angle) * 12 + localPlayer.vx,
+                        vy: Math.sin(localPlayer.angle) * 12 + localPlayer.vy,
+                        owner: 'local',
+                        damage: localPlayer.dps,
+                        life: 60,
+                        color: getShipColor(localPlayer.model)
+                    };
+                    projectiles.push(bullet);
+
+                    // Sync fire over WebRTC
+                    if (p2pConn && p2pConn.open) {
+                        p2pConn.send({ type: 'FIRE_BULLET', bullet: bullet });
+                    }
+                }
+
+                drawShipModel(localPlayer);
+
+                // Sync Player Position over WebRTC
+                if (p2pConn && p2pConn.open) {
+                    p2pConn.send({ type: 'PLAYER_SYNC', player: localPlayer });
+                }
+            }
+
+            // Remote P2P Player Drawing
+            if (remotePlayer) {
+                drawShipModel(remotePlayer);
+            }
+
+            // AI Enemies Update
+            aiEnemies.forEach(ai => {
+                if (localPlayer) {
+                    let targetAngle = Math.atan2(localPlayer.y - ai.y, localPlayer.x - ai.x);
+                    ai.angle += (targetAngle - ai.angle) * 0.05;
+                    ai.vx += Math.cos(ai.angle) * 0.15; ai.vy += Math.sin(ai.angle) * 0.15;
+                    ai.vx *= 0.96; ai.vy *= 0.96;
+                    ai.x += ai.vx; ai.y += ai.vy;
+                }
+                drawShipModel(ai);
+            });
+
+            // Projectiles Update
+            for (let i = projectiles.length - 1; i >= 0; i--) {
+                let p = projectiles[i];
+                p.x += p.vx; p.y += p.vy; p.life--;
+
+                ctx.strokeStyle = p.color;
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y);
+                ctx.lineTo(p.x - p.vx * 1.5, p.y - p.vy * 1.5);
+                ctx.stroke();
+
+                // Hit Detection vs AI (solo mode).
+                if (p.owner === 'local' && p2pRoomCode === 'SOLO') {
+                    for (let aIdx = aiEnemies.length - 1; aIdx >= 0; aIdx--) {
+                        const ai = aiEnemies[aIdx];
+                        if (Math.hypot(p.x - ai.x, p.y - ai.y) < 22) {
+                            p.life = 0;
+                            playerData.stats.shotsHit++;
+                            ai.shield -= p.damage;
+                            if (ai.shield < 0) { ai.hull += ai.shield; ai.shield = 0; }
+                            if (ai.hull <= 0) {
+                                createExplosion(ai.x, ai.y, '#ff0055');
+                                aiEnemies.splice(aIdx, 1);
+                                localPlayer.score++;
+                                playerData.stats.kills++;
+                                playerData.credits += 500;
+                                spawnAiEnemy();
+                            }
+                            break;
+                        }
+                    }
+                }
+
+                // P2P: los proyectiles remotos dañan únicamente al jugador local.
+                // El cliente que dispara no aplica el impacto; así se evita duplicar daño.
+                if (p.owner === 'remote' && p2pConn && p2pConn.open &&
+                    localPlayer && localPlayer.hull > 0 &&
+                    Math.hypot(p.x - localPlayer.x, p.y - localPlayer.y) < 25) {
+                    p.life = 0;
+                    playerData.stats.shotsHit++;
+                    applyPlayerDamage(p.damage);
+                }
+
+                if (p.life <= 0) projectiles.splice(i, 1);
+            }
+
+            // Particles Update
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let pt = particles[i];
+                pt.x += pt.vx; pt.y += pt.vy; pt.life -= 0.03;
+                ctx.fillStyle = pt.color;
+                ctx.globalAlpha = Math.max(0, pt.life);
+                ctx.beginPath();
+                ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1.0;
+                if (pt.life <= 0) particles.splice(i, 1);
+            }
+
+            // Update HUD
+            if (localPlayer) {
+                document.getElementById('hudShieldText').innerText = `${Math.ceil(localPlayer.shield)} / ${Math.ceil(localPlayer.shieldMax)}`;
+                document.getElementById('hudShieldBar').style.width = `${Math.max(0, (localPlayer.shield/localPlayer.shieldMax)*100)}%`;
+                document.getElementById('hudHullText').innerText = `${Math.ceil(localPlayer.hull)} / 100`;
+                document.getElementById('hudHullBar').style.width = `${Math.max(0, localPlayer.hull)}%`;
+                document.getElementById('hudScore').innerText = localPlayer.score;
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // ================= PROCEDURAL BACKGROUND & SHIP DRAWING =================
+        const starfield = Array.from({length: 100}, () => ({
+            x: Math.random() * window.innerWidth,
+            y: Math.random() * window.innerHeight,
+            size: Math.random() * 2 + 0.5,
+            alpha: Math.random()
+        }));
+
+        function drawSpaceBackground() {
+            // Deep Navy Blue Space Fill
+            const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            grad.addColorStop(0, '#020617');
+            grad.addColorStop(0.5, '#0b132b');
+            grad.addColorStop(1, '#030712');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Glowing Nebula Clouds
+            const nebula = ctx.createRadialGradient(canvas.width*0.2, canvas.height*0.3, 20, canvas.width*0.2, canvas.height*0.3, 300);
+            nebula.addColorStop(0, 'rgba(58, 134, 255, 0.15)');
+            nebula.addColorStop(1, 'transparent');
+            ctx.fillStyle = nebula;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Stars
+            ctx.fillStyle = '#ffffff';
+            starfield.forEach(st => {
+                ctx.globalAlpha = st.alpha;
+                ctx.beginPath();
+                ctx.arc(st.x, st.y, st.size, 0, Math.PI*2);
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1.0;
+        }
+
+        function createEngineParticle(ship) {
+            particles.push({
+                x: ship.x - Math.cos(ship.angle) * 18,
+                y: ship.y - Math.sin(ship.angle) * 18,
+                vx: -Math.cos(ship.angle) * 3 + (Math.random() - 0.5),
+                vy: -Math.sin(ship.angle) * 3 + (Math.random() - 0.5),
+                life: 1.0,
+                color: getShipColor(ship.model),
+                radius: 3
+            });
+        }
+
+        function createExplosion(x, y, color) {
+            for (let i = 0; i < 30; i++) {
+                particles.push({
+                    x: x, y: y,
+                    vx: (Math.random() - 0.5) * 8,
+                    vy: (Math.random() - 0.5) * 8,
+                    life: 1.0, color: color,
+                    radius: Math.random() * 5 + 1
+                });
+            }
+        }
+
+        function getShipColor(model) {
+            switch(model) {
+                case 'alien_bio': return '#cf38ff';
+                case 'crimson_blade': return '#ff0055';
+                case 'stealth_interceptor': return '#00f0ff';
+                case 'triwing_heavy': return '#ffd166';
+                default: return '#00f0ff';
+            }
+        }
+
+        // PROCEDURAL CANVAS RENDERER FOR THE 4 SPECIFIC SPACESHIP MODELS
+        function drawShipModel(ship, overrideCtx = ctx, scale = 1) {
+            overrideCtx.save();
+            if (overrideCtx === ctx) {
+                overrideCtx.translate(ship.x, ship.y);
+                overrideCtx.rotate(ship.angle);
+            }
+            overrideCtx.scale(scale, scale);
+
+            const color = getShipColor(ship.model);
+
+            // Shield Arc
+            if (ship.shield > 0 && overrideCtx === ctx) {
+                overrideCtx.strokeStyle = 'rgba(0, 240, 255, 0.35)';
+                overrideCtx.lineWidth = 2;
+                overrideCtx.beginPath();
+                overrideCtx.arc(0, 0, 26, 0, Math.PI * 2);
+                overrideCtx.stroke();
+            }
+
+            overrideCtx.shadowColor = color;
+            overrideCtx.shadowBlur = 12;
+
+            if (ship.model === 'alien_bio') {
+                // MODEL 1: Alien Bio-Organic Harvester (Claws & Spikes)
+                overrideCtx.fillStyle = '#1e1b4b';
+                overrideCtx.strokeStyle = '#cf38ff';
+                overrideCtx.lineWidth = 2;
+
+                overrideCtx.beginPath();
+                overrideCtx.moveTo(22, 0);
+                overrideCtx.lineTo(12, -18);
+                overrideCtx.lineTo(0, -24);
+                overrideCtx.lineTo(-14, -14);
+                overrideCtx.lineTo(-8, 0);
+                overrideCtx.lineTo(-14, 14);
+                overrideCtx.lineTo(0, 24);
+                overrideCtx.lineTo(12, 18);
+                overrideCtx.closePath();
+                overrideCtx.fill(); overrideCtx.stroke();
+
+                // Spikes
+                overrideCtx.fillStyle = '#cf38ff';
+                overrideCtx.beginPath();
+                overrideCtx.arc(4, 0, 4, 0, Math.PI*2);
+                overrideCtx.fill();
+
+            } else if (ship.model === 'crimson_blade') {
+                // MODEL 2: Crimson Blade Interceptor (Red Crescent Wings)
+                overrideCtx.fillStyle = '#450a0a';
+                overrideCtx.strokeStyle = '#ff0055';
+                overrideCtx.lineWidth = 2;
+
+                overrideCtx.beginPath();
+                overrideCtx.moveTo(20, 0);
+                overrideCtx.lineTo(-15, -22);
+                overrideCtx.lineTo(-5, 0);
+                overrideCtx.lineTo(-15, 22);
+                overrideCtx.closePath();
+                overrideCtx.fill(); overrideCtx.stroke();
+
+            } else if (ship.model === 'stealth_interceptor') {
+                // MODEL 3: Metallic Stealth Blade (Prismatic Sharp Aircraft)
+                overrideCtx.fillStyle = '#0f172a';
+                overrideCtx.strokeStyle = '#00f0ff';
+                overrideCtx.lineWidth = 2;
+
+                overrideCtx.beginPath();
+                overrideCtx.moveTo(24, 0);
+                overrideCtx.lineTo(-16, -16);
+                overrideCtx.lineTo(-8, 0);
+                overrideCtx.lineTo(-16, 16);
+                overrideCtx.closePath();
+                overrideCtx.fill(); overrideCtx.stroke();
+
+            } else if (ship.model === 'triwing_heavy') {
+                // MODEL 4: Orange Tri-Wing Heavy Destroyer (3-Way Triangular Core)
+                overrideCtx.fillStyle = '#451a03';
+                overrideCtx.strokeStyle = '#ffd166';
+                overrideCtx.lineWidth = 2.5;
+
+                overrideCtx.beginPath();
+                overrideCtx.moveTo(18, 0);
+                overrideCtx.lineTo(-18, -18);
+                overrideCtx.lineTo(-10, 0);
+                overrideCtx.lineTo(-18, 18);
+                overrideCtx.closePath();
+                overrideCtx.fill(); overrideCtx.stroke();
+            }
+
+            overrideCtx.restore();
+        }
+
+        // ================= PREVIEWS & UI MANAGERS =================
+        function renderActiveShipPreview() {
+            const previewCanvas = document.getElementById('menuShipCanvas');
+            if(!previewCanvas) return;
+            const pCtx = previewCanvas.getContext('2d');
+            pCtx.clearRect(0,0,140,140);
+
+            const activeDef = SHIPS_DATABASE.find(s => s.id === playerData.activeShipId);
+            document.getElementById('activeShipName').innerText = activeDef.name;
+            document.getElementById('activeShipShield').innerText = `${activeDef.shield} HP`;
+            document.getElementById('activeShipDPS').innerText = `${activeDef.dps} DPS`;
+
+            pCtx.save();
+            pCtx.translate(70, 70);
+            pCtx.rotate(-Math.PI / 2);
+            drawShipModel({ model: activeDef.model, shield: 0 }, pCtx, 1.4);
+            pCtx.restore();
+        }
+
+        function populateShopGrid() {
+            const container = document.getElementById('shopGrid');
+            if(!container) return;
+            container.innerHTML = '';
+
+            SHIPS_DATABASE.forEach(ship => {
+                const isOwned = playerData.ownedShips.includes(ship.id);
+                const isActive = playerData.activeShipId === ship.id;
+
+                const card = document.createElement('div');
+                card.className = "bg-slate-900/60 p-4 rounded-xl border border-slate-800 space-y-3 flex flex-col justify-between";
+                card.innerHTML = `
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-start">
+                            <h3 class="font-bold text-white text-xs">${ship.name}</h3>
+                        </div>
+                        <div class="text-[11px] space-y-1 text-slate-400">
+                            <div>Escudo: <span class="text-void-cyan font-bold">${ship.shield} HP</span></div>
+                            <div>Laser: <span class="text-amber-400 font-bold">${ship.dps} DPS</span></div>
+                        </div>
+                    </div>
+                    <div>
+                        ${isOwned ? 
+                            `<button onclick="setActiveShip('${ship.id}')" class="w-full py-1.5 rounded-lg font-bold text-xs ${isActive ? 'bg-void-cyan/20 border border-void-cyan text-void-cyan' : 'bg-slate-800 text-slate-200'}">
+                                ${isActive ? 'EQUIPADA' : 'EQUIPAR'}
+                            </button>` :
+                            `<button onclick="buyShip('${ship.id}', ${ship.price})" class="w-full py-1.5 rounded-lg bg-amber-400 text-slate-950 font-bold text-xs">
+                                COMPRAR (${ship.price.toLocaleString()} CR)
+                            </button>`
+                        }
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function buyShip(shipId, price) {
+            if (playerData.credits >= price) {
+                playerData.credits -= price;
+                playerData.ownedShips.push(shipId);
+                playerData.activeShipId = shipId;
+                savePlayerData();
+                populateShopGrid();
+                renderActiveShipPreview();
+            } else {
+                alert("Créditos insuficientes.");
+            }
+        }
+
+        function setActiveShip(shipId) {
+            playerData.activeShipId = shipId;
+            savePlayerData();
+            populateShopGrid();
+            renderActiveShipPreview();
+            populateOwnedShipsList();
+        }
+
+        function populateOwnedShipsList() {
+            const container = document.getElementById('ownedShipsList');
+            if(!container) return;
+            container.innerHTML = '';
+
+            playerData.ownedShips.forEach(id => {
+                const ship = SHIPS_DATABASE.find(s => s.id === id);
+                const isActive = playerData.activeShipId === id;
+                const div = document.createElement('div');
+                div.className = `p-2.5 rounded-lg border cursor-pointer flex justify-between items-center ${isActive ? 'bg-void-cyan/10 border-void-cyan text-white' : 'bg-slate-950 border-slate-800 text-slate-400'}`;
+                div.onclick = () => setActiveShip(id);
+                div.innerHTML = `<span class="text-xs font-bold">${ship.name}</span>`;
+                container.appendChild(div);
+            });
+        }
+
+        function upgradeStat(statKey) {
+            const cost = 1000 * playerData.upgrades[statKey];
+            if (playerData.credits >= cost) {
+                playerData.credits -= cost;
+                playerData.upgrades[statKey]++;
+                savePlayerData();
+                document.getElementById(`lvl${statKey.charAt(0).toUpperCase() + statKey.slice(1)}`).innerText = `Nvl ${playerData.upgrades[statKey]}`;
+            }
+        }
+
+        function ambientLoop() {
+            if (!isGameRunning) {
+                drawSpaceBackground();
+            }
+            requestAnimationFrame(ambientLoop);
+        }
+    </script>
 </body>
 </html>
